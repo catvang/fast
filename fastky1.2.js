@@ -3,6 +3,8 @@
     const endInputId = "ctl00_FastBusiness_MainReport_searchExtender_form_ngay2";
     const tuNgayInputId = "ctl00_FastBusiness_MainReport_searchExtender_form_tu_ngay";
     const denNgayInputId = "ctl00_FastBusiness_MainReport_searchExtender_form_den_ngay";
+    const tuNgayBkBanHang = "ctl00_FastBusiness_MainReport_searchExtender_form_ngay_ct1";
+    const denNgayBkBanHang = "ctl00_FastBusiness_MainReport_searchExtender_form_ngay_ct2";
     const STORAGE_KEY = "fb_period_selection_v3";
 
     if (document.getElementById("fb-period-float-btn")) return;
@@ -19,9 +21,11 @@
         const endInput = document.getElementById(endInputId);
         const tuNgayInput = document.getElementById(tuNgayInputId);
         const denNgayInput = document.getElementById(denNgayInputId);
+        const tuNgay1 = document.getElementById(tuNgayBkBanHang);
+        const denNgay1 = document.getElementById(denNgayBkBanHang);
         
-        const targetStart = startInput || tuNgayInput;
-        const targetEnd = endInput || denNgayInput;
+        const targetStart = startInput || tuNgayInput || tuNgay1;
+        const targetEnd = endInput || denNgayInput || denNgay1;
 
         if (targetStart && targetEnd) {
             targetStart.value = formatDate(startDate);
@@ -199,3 +203,4 @@
 
     openDialog();
 })();
+
