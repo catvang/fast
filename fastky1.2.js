@@ -1,5 +1,4 @@
 (function () {
-
     const startInputId = "ctl00_FastBusiness_MainReport_searchExtender_form_ngay1";
     const endInputId = "ctl00_FastBusiness_MainReport_searchExtender_form_ngay2";
     const tuNgayInputId = "ctl00_FastBusiness_MainReport_searchExtender_form_tu_ngay";
@@ -20,286 +19,183 @@
         const endInput = document.getElementById(endInputId);
         const tuNgayInput = document.getElementById(tuNgayInputId);
         const denNgayInput = document.getElementById(denNgayInputId);
-        if (startInput) {
-			startInput.value = formatDate(startDate);
-			endInput.value = formatDate(endDate);
-		} else if (tuNgayInput) {
-			tuNgayInput.value = formatDate(startDate);
-			denNgayInput.value = formatDate(endDate);
-		} else {
+        
+        const targetStart = startInput || tuNgayInput;
+        const targetEnd = endInput || denNgayInput;
+
+        if (targetStart && targetEnd) {
+            targetStart.value = formatDate(startDate);
+            targetEnd.value = formatDate(endDate);
+            const overlay = document.getElementById("fb-period-overlay");
+            if (overlay) overlay.remove();
+        } else {
             alert("Không tìm thấy input ngày!");
-            return;
+        }
+    }
+
+    function getRangeByWeek(week, year) {
+        const firstDayOfYear = new Date(year, 0, 1);
+        const daysOffset = (week - 1) * 7;
+        const dayOfWeek = firstDayOfYear.getDay(); 
+        const diff = firstDayOfYear.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        const startOfWeek = new Date(year, 0, diff + daysOffset);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        return { start: startOfWeek, end: endOfWeek };
+    }
+
+    function handleApply(type, value) {
+        const yearInput = document.getElementById("fb-year-input");
+        const year = parseInt(yearInput.value);
+        let start, end;
+
+        switch (type) {
+            case "month":
+                start = new Date(year, value - 1, 1);
+                end = new Date(year, value, 0);
+                break;
+            case "quarter":
+                start = new Date(year, (value - 1) * 3, 1);
+                end = new Date(year, value * 3, 0);
+                break;
+            case "half":
+                start = (value === 1) ? new Date(year, 0, 1) : new Date(year, 6, 1);
+                end = (value === 1) ? new Date(year, 6, 0) : new Date(year, 12, 0);
+                break;
+            case "year":
+                start = new Date(year, 0, 1);
+                end = new Date(year, 12, 0);
+                break;
+            case "week":
+                const range = getRangeByWeek(value, year);
+                start = range.start;
+                end = range.end;
+                break;
         }
         
+        if (start && end) {
+            setDateRange(start, end);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ year, type, value }));
+        }
     }
 
-    function saveSelection(data) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
-
-    function getSavedSelection() {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : null;
-    }
-
-    function getSelectedYear() {
-        return parseInt(document.querySelector('input[name="yearSelect"]:checked').value);
-    }
-
-    function setActive(button) {
-        document.querySelectorAll(".fb-period-btn").forEach(b => b.classList.remove("active"));
-        button.classList.add("active");
-    }
-
-    // ===============================
-    // FLOAT BUTTON (TOP CENTER)
-    // ===============================
     const floatBtn = document.createElement("button");
     floatBtn.id = "fb-period-float-btn";
     floatBtn.innerHTML = "📅 Kỳ";
-    floatBtn.title = "Mở chọn kỳ (Ctrl + K)";
-
     Object.assign(floatBtn.style, {
-        position: "fixed",
-        top: "12px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        zIndex: "999999",
-        padding: "8px 18px",
-        borderRadius: "24px",
-        border: "2px solid #fff",
-        background: "linear-gradient(135deg,#ff9800,#ff5722)",
-        color: "#fff",
-        fontWeight: "700",
-        fontSize: "14px",
-        cursor: "pointer",
-        boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
-        transition: "all 0.2s ease"
+        position: "fixed", top: "12px", left: "50%", transform: "translateX(-50%)",
+        zIndex: "999999", padding: "8px 18px", borderRadius: "24px", border: "2px solid #fff",
+        background: "linear-gradient(135deg,#ff9800,#ff5722)", color: "#fff",
+        fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
     });
-
-    floatBtn.onmouseenter = () => {
-        floatBtn.style.transform = "translateX(-50%) translateY(-2px)";
-        floatBtn.style.boxShadow = "0 8px 22px rgba(0,0,0,0.45)";
-    };
-
-    floatBtn.onmouseleave = () => {
-        floatBtn.style.transform = "translateX(-50%) translateY(0)";
-        floatBtn.style.boxShadow = "0 6px 18px rgba(0,0,0,0.35)";
-    };
-
     document.body.appendChild(floatBtn);
 
-    // ===============================
-    // OPEN DIALOG
-    // ===============================
     function openDialog() {
-
         if (document.getElementById("fb-period-overlay")) return;
 
-        const saved = getSavedSelection();
-        let selectedMeta = saved || null;
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"year":'+new Date().getFullYear()+'}');
 
         const overlay = document.createElement("div");
         overlay.id = "fb-period-overlay";
-
         Object.assign(overlay.style, {
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: "rgba(0,0,0,0.4)",
-            zIndex: 999999,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center"
+            position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+            background: "rgba(0,0,0,0.4)", zIndex: 999999, display: "flex",
+            justifyContent: "center", alignItems: "center"
         });
 
         const dialog = document.createElement("div");
-
         Object.assign(dialog.style, {
-            background: "#fff",
-            padding: "25px",
-            borderRadius: "14px",
-            boxShadow: "0 15px 40px rgba(0,0,0,0.35)",
-            width: "760px",
-            maxWidth: "95%",
-            fontFamily: "Segoe UI"
+            background: "#fff", padding: "20px", borderRadius: "12px",
+            width: "480px", fontFamily: "Segoe UI, sans-serif", boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
         });
-
-        dialog.innerHTML = `<h2 style="margin-top:0;color:#2c3e50">Chọn kỳ báo cáo</h2>`;
 
         const style = document.createElement("style");
         style.innerHTML = `
-            .fb-period-row { margin-bottom:12px }
-            .fb-period-btn {
-                padding:6px 10px;
-                margin:4px;
-                border:1px solid #ddd;
-                border-radius:6px;
-                background:#f8f9fa;
-                cursor:pointer;
-                font-size:13px;
-                transition:0.15s;
-            }
-            .fb-period-btn:hover { background:#e9ecef }
-            .fb-period-btn.active {
-                background:#007bff;
-                color:#fff;
-                border-color:#007bff;
-            }
-            .fb-confirm-btn {
-                padding:9px 22px;
-                border:none;
-                border-radius:8px;
-                background:#28a745;
-                color:#fff;
-                font-weight:600;
-                cursor:pointer;
-                box-shadow:0 4px 12px rgba(0,0,0,0.25);
-                transition:0.2s;
-            }
-            .fb-confirm-btn:hover {
-                background:#218838;
-            }
+            .fb-row { margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+            .fb-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px; }
+            .fb-label { font-weight: bold; width: 50px; font-size: 13px; color: #555; }
+            .fb-btn { padding: 6px; border: 1px solid #ddd; border-radius: 4px; background: #f8f9fa; cursor: pointer; font-size: 12px; transition: 0.2s; text-align: center; }
+            .fb-btn:hover { background: #007bff; color: white; border-color: #007bff; }
+            .fb-input { padding: 5px 8px; border: 1px solid #ccc; border-radius: 4px; width: 70px; outline: none; }
+            .fb-input:focus { border-color: #ff9800; }
+            .fb-primary-btn { background: #e67e22; color: white; border: none; font-weight: bold; padding: 6px 15px; }
         `;
         document.head.appendChild(style);
 
-        // ===== YEAR =====
-        const yearRow = document.createElement("div");
-        yearRow.className = "fb-period-row";
-        const currentYear = new Date().getFullYear();
+        dialog.innerHTML = `
+            <h3 style="margin:0 0 15px 0; color:#d35400; font-size: 18px;">Chọn kỳ báo cáo</h3>
+            
+            <div class="fb-row">
+                <span class="fb-label">Năm:</span>
+                <input type="number" id="fb-year-input" class="fb-input" value="${saved.year}">
+                <button class="fb-btn fb-primary-btn" id="fb-full-year">Cả năm</button>
+                <div style="flex-grow:1"></div>
+                <span class="fb-label" style="width:auto">Tuần:</span>
+                <input type="number" id="fb-week-input" class="fb-input" style="width:50px" placeholder="Số">
+                <button class="fb-btn" id="fb-apply-week" style="background:#2ecc71; color:white; border:none">Ok</button>
+            </div>
 
-        for (let i = 0; i <= 5; i++) {
-            const year = currentYear - i;
-            const label = document.createElement("label");
-            label.style.marginRight = "12px";
+            <hr style="border:0; border-top:1px solid #eee; margin:10px 0">
+            
+            <div style="font-size:12px; color:#888; margin-bottom:5px; font-weight:bold">THÁNG</div>
+            <div class="fb-grid" id="month-g1"></div>
+            <div class="fb-grid" id="month-g2"></div>
 
-            const radio = document.createElement("input");
-            radio.type = "radio";
-            radio.name = "yearSelect";
-            radio.value = year;
+            <div style="font-size:12px; color:#888; margin-bottom:5px; font-weight:bold">QUÝ & KHÁC</div>
+            <div class="fb-row" id="quarter-row"></div>
+        `;
 
-            if (saved && saved.year == year) radio.checked = true;
-            else if (!saved && i === 0) radio.checked = true;
-
-            label.appendChild(radio);
-            label.append(" " + year);
-            yearRow.appendChild(label);
-        }
-
-        dialog.appendChild(yearRow);
-
-        function createButton(text, type, value) {
+        // Render Months (2 rows)
+        const g1 = dialog.querySelector("#month-g1");
+        const g2 = dialog.querySelector("#month-g2");
+        for (let i = 1; i <= 12; i++) {
             const btn = document.createElement("button");
-            btn.textContent = text;
-            btn.className = "fb-period-btn";
-
-            btn.onclick = function () {
-                setActive(btn);
-                selectedMeta = {
-                    year: getSelectedYear(),
-                    type: type,
-                    value: value
-                };
-            };
-
-            if (saved && saved.type === type && saved.value === value) {
-                setTimeout(() => btn.classList.add("active"), 50);
-            }
-
-            return btn;
+            btn.className = "fb-btn";
+            btn.textContent = "T" + i;
+            btn.onclick = () => handleApply("month", i);
+            (i <= 6 ? g1 : g2).appendChild(btn);
         }
 
-        // MONTH
-        const monthRow = document.createElement("div");
-        monthRow.className = "fb-period-row";
-        for (let m = 1; m <= 12; m++) {
-            monthRow.appendChild(createButton("T" + m, "month", m));
+        // Render Quarters
+        const qRow = dialog.querySelector("#quarter-row");
+        for (let i = 1; i <= 4; i++) {
+            const btn = document.createElement("button");
+            btn.className = "fb-btn";
+            btn.style.flex = "1";
+            btn.textContent = "Quý " + i;
+            btn.onclick = () => handleApply("quarter", i);
+            qRow.appendChild(btn);
         }
-        dialog.appendChild(monthRow);
 
-        // QUARTER
-        const quarterRow = document.createElement("div");
-        quarterRow.className = "fb-period-row";
-        for (let q = 1; q <= 4; q++) {
-            quarterRow.appendChild(createButton("Quý " + q, "quarter", q));
-        }
-        dialog.appendChild(quarterRow);
+        // 6 Tháng
+        const h1 = document.createElement("button"); h1.className="fb-btn"; h1.style.flex="1.2"; h1.textContent="6T đầu"; h1.onclick=()=>handleApply("half", 1);
+        const h2 = document.createElement("button"); h2.className="fb-btn"; h2.style.flex="1.2"; h2.textContent="6T cuối"; h2.onclick=()=>handleApply("half", 2);
+        qRow.append(h1, h2);
 
-        // HALF
-        const halfRow = document.createElement("div");
-        halfRow.className = "fb-period-row";
-        halfRow.appendChild(createButton("Nửa đầu năm", "half", 1));
-        halfRow.appendChild(createButton("Nửa cuối năm", "half", 2));
-        dialog.appendChild(halfRow);
-
-        // FULL YEAR
-        const fullRow = document.createElement("div");
-        fullRow.className = "fb-period-row";
-        fullRow.appendChild(createButton("Cả năm", "year", 1));
-        dialog.appendChild(fullRow);
-
-        // ===== ĐỒNG Ý =====
-        const confirmBtn = document.createElement("button");
-        confirmBtn.textContent = "Đồng ý";
-        confirmBtn.className = "fb-confirm-btn";
-
-        confirmBtn.onclick = function () {
-
-            if (!selectedMeta) return alert("Vui lòng chọn kỳ!");
-
-            const year = selectedMeta.year;
-            let start, end;
-
-            if (selectedMeta.type === "month") {
-                start = new Date(year, selectedMeta.value - 1, 1);
-                end = new Date(year, selectedMeta.value, 0);
-            }
-
-            if (selectedMeta.type === "quarter") {
-                const sm = (selectedMeta.value - 1) * 3;
-                start = new Date(year, sm, 1);
-                end = new Date(year, sm + 3, 0);
-            }
-
-            if (selectedMeta.type === "half") {
-                if (selectedMeta.value === 1) {
-                    start = new Date(year, 0, 1);
-                    end = new Date(year, 6, 0);
-                } else {
-                    start = new Date(year, 6, 1);
-                    end = new Date(year, 12, 0);
-                }
-            }
-
-            if (selectedMeta.type === "year") {
-                start = new Date(year, 0, 1);
-                end = new Date(year, 12, 0);
-            }
-
-            setDateRange(start, end);
-            saveSelection(selectedMeta);
-            overlay.remove();
-        };
-
-        dialog.appendChild(confirmBtn);
-
-        overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
         overlay.appendChild(dialog);
         document.body.appendChild(overlay);
+
+        // Events
+        document.getElementById("fb-full-year").onclick = () => handleApply("year", 1);
+        
+        const weekInput = document.getElementById("fb-week-input");
+        const applyWeek = () => {
+            const w = parseInt(weekInput.value);
+            if (w > 0 && w <= 53) handleApply("week", w);
+        };
+        document.getElementById("fb-apply-week").onclick = applyWeek;
+        weekInput.onkeydown = (e) => { if(e.key === "Enter") applyWeek(); };
+
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
     }
 
     floatBtn.onclick = openDialog;
-
-    // ===== HOTKEY CTRL + K =====
-    document.addEventListener("keydown", function (e) {
+    document.addEventListener("keydown", (e) => {
         if (e.ctrlKey && e.key.toLowerCase() === "k") {
             e.preventDefault();
             openDialog();
         }
     });
-	
-	openDialog();
-	
+
+    openDialog();
 })();
