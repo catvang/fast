@@ -1,41 +1,74 @@
 (function () {
-    // Danh sách các ID input ngày của Fast Business (tự động mở rộng tại đây)
+    // Danh sách các ID input ngày và kỳ
     const START_IDS = ["ctl00_FastBusiness_MainReport_searchExtender_form_ngay1", "ctl00_FastBusiness_MainReport_searchExtender_form_tu_ngay", "ctl00_FastBusiness_MainReport_searchExtender_form_ngay_ct1"];
     const END_IDS = ["ctl00_FastBusiness_MainReport_searchExtender_form_ngay2", "ctl00_FastBusiness_MainReport_searchExtender_form_den_ngay", "ctl00_FastBusiness_MainReport_searchExtender_form_ngay_ct2"];
+    
+    // Các ID mới cho trường hợp Kỳ/Năm
+    const MONTH_START_ID = "ctl00_FastBusiness_MainReport_searchExtender_form_tu_ky";
+    const YEAR_START_ID = "ctl00_FastBusiness_MainReport_searchExtender_form_tu_nam";
+    const MONTH_END_ID = "ctl00_FastBusiness_MainReport_searchExtender_form_den_ky";
+    const YEAR_END_ID = "ctl00_FastBusiness_MainReport_searchExtender_form_den_nam";
+
     const STORAGE_KEY = "fb_period_selection_v3";
 
     if (document.getElementById("fb-period-float-btn")) return;
 
     const formatDate = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 
+    // Hàm điền ngày (dd/mm/yyyy)
     function setDateRange(startDate, endDate) {
-        // Tìm input đầu tiên tồn tại trong danh sách ID
         const targetStart = START_IDS.map(id => document.getElementById(id)).find(el => el !== null);
         const targetEnd = END_IDS.map(id => document.getElementById(id)).find(el => el !== null);
 
         if (targetStart && targetEnd) {
             targetStart.value = formatDate(startDate);
             targetEnd.value = formatDate(endDate);
-            document.getElementById("fb-period-overlay")?.remove();
-        } else {
-            alert("Không tìm thấy input ngày!");
+            return true;
         }
+        return false;
+    }
+
+    // Hàm mới: Điền Kỳ và Năm
+    function setMonthYearRange(startMonth, startYear, endMonth, endYear) {
+        const inputTuKy = document.getElementById(MONTH_START_ID);
+        const inputTuNam = document.getElementById(YEAR_START_ID);
+        const inputDenKy = document.getElementById(MONTH_END_ID);
+        const inputDenNam = document.getElementById(YEAR_END_ID);
+
+        if (inputTuKy && inputTuNam && inputDenKy && inputDenNam) {
+            inputTuKy.value = startMonth;
+            inputTuNam.value = startYear;
+            inputDenKy.value = endMonth;
+            inputDenNam.value = endYear;
+            return true;
+        }
+        return false;
     }
 
     function handleApply(type, value) {
         const year = parseInt(document.getElementById("fb-year-input").value);
         let start, end;
+        let startMonth, startYear, endMonth, endYear;
 
+        // Tính toán giá trị dựa trên loại kỳ chọn
         if (type === "month") {
+            startMonth = value; startYear = year;
+            endMonth = value; endYear = year;
             start = new Date(year, value - 1, 1);
             end = new Date(year, value, 0);
         } else if (type === "quarter") {
+            startMonth = (value - 1) * 3 + 1; startYear = year;
+            endMonth = value * 3; endYear = year;
             start = new Date(year, (value - 1) * 3, 1);
             end = new Date(year, value * 3, 0);
         } else if (type === "half") {
+            startMonth = (value === 1 ? 1 : 7); startYear = year;
+            endMonth = (value === 1 ? 6 : 12); endYear = year;
             start = new Date(year, value === 1 ? 0 : 6, 1);
             end = new Date(year, value === 1 ? 6 : 12, 0);
         } else if (type === "year") {
+            startMonth = 1; startYear = year;
+            endMonth = 12; endYear = year;
             start = new Date(year, 0, 1);
             end = new Date(year, 12, 0);
         } else if (type === "week") {
@@ -45,16 +78,31 @@
             start = new Date(year, 0, diff + dayOff);
             end = new Date(start);
             end.setDate(start.getDate() + 6);
+            // Đối với tuần, thường Fast sẽ dùng input Ngày thay vì input Kỳ
+            startMonth = start.getMonth() + 1; startYear = start.getFullYear();
+            endMonth = end.getMonth() + 1; endYear = end.getFullYear();
         }
         
-        if (start && end) {
-            setDateRange(start, end);
+        // Thực thi điền dữ liệu
+        let success = false;
+        // Ưu tiên kiểm tra input Kỳ/Năm trước
+        if (document.getElementById(MONTH_START_ID)) {
+            success = setMonthYearRange(startMonth, startYear, endMonth, endYear);
+        } else {
+            success = setDateRange(start, end);
+        }
+
+        if (success) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify({ year, type, value }));
-            document.getElementById("ctl00_FastBusiness_MainReport_searchExtender_updateDlgOk").click();
+            document.getElementById("fb-period-overlay")?.remove();
+            // Tự động nhấn nút Nhận (Ok) của Fast
+            document.getElementById("ctl00_FastBusiness_MainReport_searchExtender_updateDlgOk")?.click();
+        } else {
+            alert("Không tìm thấy input phù hợp (Ngày hoặc Kỳ/Năm)!");
         }
     }
 
-    // --- PHẦN GIAO DIỆN (Giữ nguyên logic của bạn nhưng tối ưu CSS/Render) ---
+    // --- PHẦN GIAO DIỆN (Giữ nguyên như bản cũ) ---
     const floatBtn = document.createElement("button");
     floatBtn.id = "fb-period-float-btn";
     floatBtn.innerHTML = "📅 Kỳ";
@@ -113,12 +161,11 @@
             </div>
         `;
 
-        window.fbApply = handleApply; // Đưa hàm ra ngoài để onclick trong chuỗi HTML hoạt động
+        window.fbApply = handleApply;
         overlay.appendChild(dialog);
         document.body.appendChild(overlay);
         overlay.onclick = (e) => e.target === overlay && overlay.remove();
         
-        // Hỗ trợ Enter cho input tuần
         dialog.querySelector("#fb-week-input").onkeydown = (e) => e.key === "Enter" && handleApply('week', e.target.value);
     }
 
