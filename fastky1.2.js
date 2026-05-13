@@ -50,6 +50,7 @@
         if (start && end) {
             setDateRange(start, end);
             localStorage.setItem(STORAGE_KEY, JSON.stringify({ year, type, value }));
+            document.getElementById("ctl00_FastBusiness_MainReport_searchExtender_updateDlgOk").click();
         }
     }
 
