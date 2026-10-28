@@ -1,5 +1,5 @@
-(function runFastPortalAllReportsFixed() {
-  // 1. Xóa giao diện cũ nếu có
+(function runFastPortalFixDvcsGroupB() {
+  // 1. Xóa giao diện cũ
   const oldRoot = document.getElementById('fast-automation-root');
   if (oldRoot) oldRoot.remove();
   const oldIframe = document.getElementById('fast-automation-worker-iframe');
@@ -10,9 +10,7 @@
   const DEFAULT_BTN_OK = '#ctl00_FastBusiness_MainReport_searchExtender_updateDlgOk';
   const DIALOG_MSG_OK = '#ctl00_FastBusiness_MainReport_DialogMessage_dlgOk';
 
-  // =========================================================================
-  // 2. CHUẨN HÓA BỘ SELECTOR TOÀN BỘ DANH MỤC BÁO CÁO (NHÓM A -> E)
-  // =========================================================================
+  // 2. Danh mục tác vụ phân nhóm A -> E chuẩn hóa selector ĐVCS cho Nhóm B
   const TASK_GROUPS = [
     {
       groupCode: 'A',
@@ -31,19 +29,19 @@
       groupCode: 'B',
       groupName: 'Kế toán tổng hợp & BCTC',
       items: [
-        { code: 'cdkt', name: 'Bảng cân đối kế toán (BCTC Năm)', shortName: 'Cdkt-Nam', path: 'rpt_gltc1.aspx?id=03.30.13', inputType: 'DATE_COMPARISON', inputs: { kyNayDen: '[id*="ngay2"], [id*="den_ngay"]', kyTruocDen: '[id*="ngay_truoc"], [id*="ky_truoc_den"]', loaiBaoCao: '[id*="form_form"], [id*="loai_bc"]', maDvcs: '[id*="ma_dvcs"]' } },
-        { code: 'nkc', name: 'Sổ nhật ký chung', shortName: 'Nkc', path: 'rpt_glbk1.aspx?id=03.20.91', inputType: 'DATE', filterPanelInput: '#ctl00_FastBusiness_MainReport_FilterPanelTextps_no', filterPanelValue: '<>0', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '[id*="ma_dvcs"]' } },
-        { code: 'cd', name: 'Cân đối phát sinh tài khoản', shortName: 'Cđpstk', path: 'rpt_glcd1d.aspx?id=03.30.11', inputType: 'DATE', inputs: { tuNgay: '[id*="ngay1"], [id*="tu_ngay"]', denNgay: '[id*="ngay2"], [id*="den_ngay"]', maDvcs: '[id*="ma_dvcs"]' } },
-        { code: 'kq', name: 'Kết quả SXKD', shortName: 'Kqkd', path: 'rpt_gltc2.aspx?id=03.30.14', inputType: 'DATE_COMPARISON', inputs: { kyNayTu: '[id*="ky_nay_tu"], [id*="tu_ngay"]', kyNayDen: '[id*="ky_nay_den"], [id*="den_ngay"]', kyTruocTu: '[id*="ky_truoc_tu"]', kyTruocDen: '[id*="ky_truoc_den"]', loaiBaoCao: '[id*="form_form"], [id*="loai_bc"]', maDvcs: '[id*="ma_dvcs"]' } },
-        { code: 'cp', name: 'Tổng hợp chi phí theo mã phí', shortName: 'Thcp-Mp', path: 'rpt_glbccp1ky.aspx?id=03.50.21', inputType: 'DATE_MULTI_CELL', inputs: { tuNgay: '[id*="formCell_1.4"], [id*="tu_ngay"]', denNgay: '[id*="formCell_1.5"], [id*="den_ngay"]', tkList: '[id*="formCell_2.6"]', bcTheo: '[id*="bc_theo"]', maDvcs: '[id*="ma_dvcs"]' } }
+        { code: 'cdkt', name: 'Bảng cân đối kế toán (BCTC Năm)', shortName: 'Cdkt-Nam', path: 'rpt_gltc1.aspx?id=03.30.13', inputType: 'DATE_COMPARISON', inputs: { kyNayDen: '[id*="ngay2"], [id*="den_ngay"]', kyTruocDen: '[id*="ngay_truoc"], [id*="ky_truoc_den"]', loaiBaoCao: '[id*="form_form"], [id*="loai_bc"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"], [name*="ma_dvcs"]' } },
+        { code: 'nkc', name: 'Sổ nhật ký chung', shortName: 'Nkc', path: 'rpt_glbk1.aspx?id=03.20.91', inputType: 'DATE', filterPanelInput: '#ctl00_FastBusiness_MainReport_FilterPanelTextps_no', filterPanelValue: '<>0', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"], [name*="ma_dvcs"]' } },
+        { code: 'cd', name: 'Cân đối phát sinh tài khoản', shortName: 'Cđpstk', path: 'rpt_glcd1d.aspx?id=03.30.11', inputType: 'DATE', inputs: { tuNgay: '[id*="ngay1"], [id*="tu_ngay"]', denNgay: '[id*="ngay2"], [id*="den_ngay"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"], [name*="ma_dvcs"]' } },
+        { code: 'kq', name: 'Kết quả SXKD', shortName: 'Kqkd', path: 'rpt_gltc2.aspx?id=03.30.14', inputType: 'DATE_COMPARISON', inputs: { kyNayTu: '[id*="ky_nay_tu"], [id*="tu_ngay"]', kyNayDen: '[id*="ky_nay_den"], [id*="den_ngay"]', kyTruocTu: '[id*="ky_truoc_tu"]', kyTruocDen: '[id*="ky_truoc_den"]', loaiBaoCao: '[id*="form_form"], [id*="loai_bc"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"], [name*="ma_dvcs"]' } },
+        { code: 'cp', name: 'Tổng hợp chi phí theo mã phí', shortName: 'Thcp-Mp', path: 'rpt_glbccp1ky.aspx?id=03.50.21', inputType: 'DATE_MULTI_CELL', inputs: { tuNgay: '[id*="formCell_1.4"], [id*="tu_ngay"]', denNgay: '[id*="formCell_1.5"], [id*="den_ngay"]', tkList: '[id*="formCell_2.6"]', bcTheo: '[id*="bc_theo"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"], [name*="ma_dvcs"]' } }
       ]
     },
     {
       groupCode: 'C',
       groupName: 'Kho & Tồn kho',
       items: [
-        { code: 'nxt', name: 'Nhập xuất tồn theo kho', shortName: 'Nxt', path: 'rpt_incd2.aspx?id=15.30.83', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '[id*="ma_dvcs"]' } },
-        { code: 'vb', name: 'Tồn kho vỏ bình theo vị trí', shortName: 'Tkvb-Vt', path: 'zcbcthnxttvtrvb.aspx?id=38.40.02', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '[id*="ma_dvcs"]' } },
+        { code: 'nxt', name: 'Nhập xuất tồn theo kho', shortName: 'Nxt', path: 'rpt_incd2.aspx?id=15.30.83', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
+        { code: 'vb', name: 'Tồn kho vỏ bình theo vị trí', shortName: 'Tkvb-Vt', path: 'zcbcthnxttvtrvb.aspx?id=38.40.02', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
         { code: 'tk', name: 'NXT kho theo tài khoản', shortName: 'Nxt-Tk', path: 'rpt_incd1.aspx?id=15.30.82', inputType: 'DATE', inputs: { tuNgay: '[id*="formCell_1.3"], [id*="tu_ngay"]', denNgay: '[id*="formCell_1.4"], [id*="den_ngay"]', maDvcs: '[id*="formCell_4.5"], [id*="ma_dvcs"]' } }
       ]
     },
@@ -51,63 +49,19 @@
       groupCode: 'D',
       groupName: 'Hóa đơn & Bán hàng',
       items: [
-        { code: 'bh', name: 'Bán hàng theo vụ việc', shortName: 'Bh-Vv', path: 'rpt_soth2.aspx?id=11.30.34', inputType: 'DATE', inputs: { tuNgay: '[id*="ngay_ct1"], [id*="tu_ngay"]', denNgay: '[id*="ngay_ct2"], [id*="den_ngay"]', nhomTheo: '[id*="nh_theo"]', maDvcs: '[id*="ma_dvcs"]' } },
-        // Bảng kê mua vào: quét đa lớp cho từ tháng, đến tháng, năm và ĐVCS
-        { 
-          code: 'mv', 
-          name: 'Bảng kê mua vào', 
-          shortName: 'Bkmv', 
-          path: 'rpt_glthue1.aspx?id=03.39.11', 
-          inputType: 'MONTH_SINGLE_YEAR', 
-          inputs: { 
-            tuThang: '[id*="formCell_1.2"], [id*="form_ky1"], [id*="tu_thang"]', 
-            denThang: '[id*="formCell_2.2"], [id*="form_ky2"], [id*="den_thang"]', 
-            nam: '[id*="formCell_3.2"], [id*="form_nam"]', 
-            maDvcs: '[id*="formCell_11.2"], [id*="formCell_11.3"], [id*="form_ma_dvcs"], [id*="ma_dvcs"]', 
-            nhomHdr: '[id*="formCell_14.2"]', 
-            chonTt: '[id*="chon_tt"]' 
-          } 
-        },
-        // Bảng kê bán ra: quét đa lớp
-        { 
-          code: 'br', 
-          name: 'Bảng kê bán ra', 
-          shortName: 'Bkbr', 
-          path: 'rpt_glthue2a.aspx?id=03.39.13', 
-          inputType: 'MONTH_SINGLE_YEAR', 
-          inputs: { 
-            tuThang: '[id*="formCell_1.2"], [id*="form_ky1"], [id*="tu_thang"]', 
-            denThang: '[id*="formCell_2.2"], [id*="form_ky2"], [id*="den_thang"]', 
-            nam: '[id*="formCell_3.2"], [id*="form_nam"]', 
-            maDvcs: '[id*="formCell_7.2"], [id*="formCell_8.2"], [id*="form_ma_dvcs"], [id*="ma_dvcs"]', 
-            nhomHdr: '[id*="formCell_10.2"]', 
-            chonTt: '[id*="chon_tt"]' 
-          } 
-        },
-        { 
-          code: 'tk3', 
-          name: 'Tờ khai thuế GTGT', 
-          shortName: 'Tkgtgt', 
-          path: 'rpt_glthue3.aspx?id=03.39.19', 
-          inputType: 'MONTH_SINGLE_YEAR', 
-          inputs: { 
-            tuThang: '[id*="form_ky1"]', 
-            denThang: '[id*="form_ky2"]', 
-            nam: '[id*="form_nam"]', 
-            maDvcs: '[id*="ma_dvcs"]', 
-            chonTt: '[id*="chon_tt"]', 
-            loaiBaoCao: '[id*="form_form"]' 
-          } 
-        }
+        { code: 'bh', name: 'Bán hàng theo vụ việc', shortName: 'Bh-Vv', path: 'rpt_soth2.aspx?id=11.30.34', inputType: 'DATE', inputs: { tuNgay: '[id*="ngay_ct1"], [id*="tu_ngay"]', denNgay: '[id*="ngay_ct2"], [id*="den_ngay"]', nhomTheo: '[id*="nh_theo"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
+        { code: 'mv', name: 'Bảng kê mua vào', shortName: 'Bkmv', path: 'rpt_glthue1.aspx?id=03.39.11', inputType: 'MONTH_SINGLE_YEAR', inputs: { tuThang: '[id*="formCell_1.2"], [id*="form_ky1"], [id*="tu_thang"]', denThang: '[id*="formCell_2.2"], [id*="form_ky2"], [id*="den_thang"]', nam: '[id*="formCell_3.2"], [id*="form_nam"]', maDvcs: '[id*="formCell_11.2"], [id*="formCell_11.3"], [id*="form_ma_dvcs"], [id$="ma_dvcs"]', nhomHdr: '[id*="formCell_14.2"]', chonTt: '[id*="chon_tt"]' } },
+        { code: 'br', name: 'Bảng kê bán ra', shortName: 'Bkbr', path: 'rpt_glthue2a.aspx?id=03.39.13', inputType: 'MONTH_SINGLE_YEAR', inputs: { tuThang: '[id*="formCell_1.2"], [id*="form_ky1"], [id*="tu_thang"]', denThang: '[id*="formCell_2.2"], [id*="form_ky2"], [id*="den_thang"]', nam: '[id*="formCell_3.2"], [id*="form_nam"]', maDvcs: '[id*="formCell_7.2"], [id*="formCell_8.2"], [id*="form_ma_dvcs"], [id$="ma_dvcs"]', nhomHdr: '[id*="formCell_10.2"]', chonTt: '[id*="chon_tt"]' } },
+        { code: 'tk3', name: 'Tờ khai thuế GTGT', shortName: 'Tkgtgt', path: 'rpt_glthue3.aspx?id=03.39.19', inputType: 'MONTH_SINGLE_YEAR', inputs: { tuThang: '[id*="form_ky1"]', denThang: '[id*="form_ky2"]', nam: '[id*="form_nam"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]', chonTt: '[id*="chon_tt"]', loaiBaoCao: '[id*="form_form"]' } }
       ]
     },
     {
       groupCode: 'E',
       groupName: 'Tài sản & Công nợ',
       items: [
-        { code: 'kh', name: 'Bảng khấu hao TSCĐ', shortName: 'Bkh-Tscd', path: 'rpt_fabckh.aspx?id=18.70.81', inputType: 'MONTH_DUAL_YEAR', inputs: { tuThang: '[id*="formCell_1.2"]', tuNam: '[id*="tu_nam"]', denThang: '[id*="formCell_2.2"]', denNam: '[id*="formCell_2.3"]', maDvcs: '[id*="ma_dvcs"]' } },
-        { code: 'cc', name: 'Bảng tính chi phí CCDC', shortName: 'Btcp-Ccdc', path: 'rpt_btcpccdc.aspx?id=22.40.02', inputType: 'MONTH_DUAL_YEAR', inputs: { tuThang: '[id*="formCell_1.2"]', tuNam: '[id*="tu_nam"]', denThang: '[id*="formCell_2.2"]', denNam: '[id*="formCell_2.3"]', maDvcs: '[id*="ma_dvcs"]' } },
-        { code: 'cn', name: 'Cân đối phát sinh công nợ', shortName: 'Cdcn', path: 'rpt_arcd2.aspx?id=07.30.16', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '[id*="ma_dvcs"]' } }
+        { code: 'kh', name: 'Bảng khấu hao TSCĐ', shortName: 'Bkh-Tscd', path: 'rpt_fabckh.aspx?id=18.70.81', inputType: 'MONTH_DUAL_YEAR', inputs: { tuThang: '[id*="formCell_1.2"]', tuNam: '[id*="tu_nam"]', denThang: '[id*="formCell_2.2"]', denNam: '[id*="formCell_2.3"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
+        { code: 'cc', name: 'Bảng tính chi phí CCDC', shortName: 'Btcp-Ccdc', path: 'rpt_btcpccdc.aspx?id=22.40.02', inputType: 'MONTH_DUAL_YEAR', inputs: { tuThang: '[id*="formCell_1.2"]', tuNam: '[id*="tu_nam"]', denThang: '[id*="formCell_2.2"]', denNam: '[id*="formCell_2.3"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
+        { code: 'cn', name: 'Cân đối phát sinh công nợ', shortName: 'Cdcn', path: 'rpt_arcd2.aspx?id=07.30.16', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } }
       ]
     }
   ];
@@ -213,16 +167,13 @@
 
     return new Promise((resolve) => {
       frame.onload = () => {
-        if (badge) badge.innerText = 'Đã nạp xong trang';
+        if (badge) badge.innerText = 'Đã nạp xong';
         resolve(true);
       };
       frame.src = url;
     });
   }
 
-  // =========================================================================
-  // 3. CƠ CHẾ TÌM KIẾM ĐA TẦNG CHO THẺ INPUT / SELECT / FORM CELL
-  // =========================================================================
   async function waitFrameSelector(selectorString, timeout = 35000) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
@@ -232,7 +183,6 @@
         for (const s of parts) {
           let el = doc.querySelector(s);
           if (el) {
-            // Nếu selector rơi vào TD hoặc div cha, tìm input hoặc select thật sự bên trong
             if (el.tagName !== 'INPUT' && el.tagName !== 'SELECT') {
               const childInput = el.querySelector('input, select');
               if (childInput) return childInput;
@@ -323,12 +273,21 @@
     }
   }
 
-  // =========================================================================
-  // 4. TIẾN TRÌNH THỰC THI CHUẨN XÁC TỪNG BÁO CÁO
-  // =========================================================================
+  // Lấy chính xác chuỗi chi nhánh từ Checkbox hoặc Input
+  function getActiveBranchesString() {
+    const checkedBoxes = Array.from(document.querySelectorAll('.fa-chk-dvcs:checked')).map(c => c.value.trim());
+    if (checkedBoxes.length > 0) {
+      return checkedBoxes.join(', ');
+    }
+    const inputVal = document.getElementById('fa-dvcs-input');
+    return inputVal ? inputVal.value.trim() : '';
+  }
+
   let isRunning = false;
   async function processAutomationQueue(queue) {
     isRunning = true;
+    const stopBtn = document.getElementById('fa-btn-stop');
+    if (stopBtn) stopBtn.style.display = 'inline-block';
     logPanel(`\n>>> 🚀 BẮT ĐẦU CHẠY ${queue.length} TÁC VỤ...`);
 
     for (let i = 0; i < queue.length; i++) {
@@ -346,11 +305,9 @@
 
       logPanel(`\n[${i + 1}/${queue.length}] ${task.name} | Kỳ: ${times.labelKy} | ĐVCS: "${dvcs || ''}"`);
 
-      // 1. Tải trang vào iframe
       await loadPageInIframe(targetUrl);
       await sleep(1500);
 
-      // 2. Mở form lọc nếu bị ẩn
       const rawFirstInput = (task.inputType === 'DATE' || task.inputType === 'DATE_MULTI_CELL') ? task.inputs.tuNgay
         : (task.inputType === 'DATE_COMPARISON' ? (task.inputs.kyNayTu || task.inputs.kyNayDen) : (task.inputs.thang || task.inputs.tuThang));
 
@@ -366,7 +323,7 @@
         continue;
       }
 
-      // 3. Điền các tham số thời gian
+      // Điền thời gian
       if (task.inputType === 'DATE' || task.inputType === 'DATE_MULTI_CELL') {
         fillFrameInput(firstInput, times.tuNgay);
         fillFrameInput(await waitFrameSelector(task.inputs.denNgay), times.denNgay);
@@ -395,7 +352,6 @@
         fillFrameInput(await waitFrameSelector(task.inputs.nam), times.nam);
       }
 
-      // 4. Điền các tham số bổ trợ
       if (task.inputs.nhomTheo) selectFrameOption(await waitFrameSelector(task.inputs.nhomTheo), '3', /vụ việc/i);
       if (task.inputs.nhomHdr) {
         const elHdr = await waitFrameSelector(task.inputs.nhomHdr, 2000);
@@ -404,40 +360,37 @@
       if (task.inputs.chonTt) selectFrameOption(await waitFrameSelector(task.inputs.chonTt), task.code === 'tk3' ? '5' : '0');
       if (task.code === 'tk3' && task.inputs.loaiBaoCao) selectFrameOption(await waitFrameSelector(task.inputs.loaiBaoCao), 'V20GLTHUE3_284');
 
-      // 5. Điền chính xác Mã ĐVCS / Chi nhánh (hỗ trợ quét đa tầng)
+      // Điền ĐVCS: Tăng cường tìm kiếm chính xác cho nhóm B (CDKT, NKC, CD, KQ, CP)
       if (task.inputs.maDvcs) {
-        const elDvcs = await waitFrameSelector(task.inputs.maDvcs, 4000);
+        let elDvcs = await waitFrameSelector(task.inputs.maDvcs, 4000);
+        if (!elDvcs) {
+          const doc = getIframeDoc();
+          elDvcs = doc ? doc.querySelector('input[id*="ma_dvcs"], input[name*="ma_dvcs"]') : null;
+        }
+
         if (elDvcs) {
           fillFrameInput(elDvcs, dvcs || '');
           logPanel(`✔ Đã điền ĐVCS: "${dvcs || ''}"`);
         } else {
-          // Fallback tìm mọi ô input có tên liên quan đến ma_dvcs trên form hiện tại
-          const doc = getIframeDoc();
-          const fallbackDvcs = doc ? doc.querySelector('input[id*="ma_dvcs"], input[id*="formCell_"][id$=".2"]') : null;
-          if (fallbackDvcs) {
-            fillFrameInput(fallbackDvcs, dvcs || '');
-            logPanel(`✔ Đã điền ĐVCS (fallback): "${dvcs || ''}"`);
-          }
+          logPanel(`⚠ Không tìm thấy ô nhập ĐVCS trên form.`);
         }
       }
 
       await sleep(500);
 
-      // 6. Bấm nút NHẬN / OK để chạy báo cáo
+      // Bấm nút Nhận
       const btnOk = await waitFrameSelector(DEFAULT_BTN_OK, 5000);
       if (btnOk) {
         btnOk.click();
         logPanel(`✔ Đã bấm nút Nhận.`);
       } else {
-        // Fallback nút nhận của Fast
         const doc = getIframeDoc();
-        const altOk = doc ? doc.querySelector('[id*="updateDlgOk"], [id*="btnOk"], .button-ok') : null;
+        const altOk = doc ? doc.querySelector('[id*="updateDlgOk"], [id*="btnOk"]') : null;
         if (altOk) altOk.click();
       }
 
       await sleep(2500);
 
-      // 7. Xử lý sau khi nạp số liệu hoặc tải file
       if (['EXECUTE_GIA_TRUNG_BINH', 'EXECUTE_TINH_PB', 'EXECUTE_TINH_KH', 'EXECUTE_LAP_BT'].includes(task.inputType)) {
         const dlgOk = await waitFrameSelector(DIALOG_MSG_OK, 60000);
         if (dlgOk) dlgOk.click();
@@ -474,12 +427,11 @@
     }
 
     isRunning = false;
-    logPanel(`\n>>> 🎉 HOÀN TẤT TOÀN BỘ DANH SÁCH CHẠY!`);
+    if (stopBtn) stopBtn.style.display = 'none';
+    logPanel(`\n>>> 🎉 HOÀN TẤT TOÀN BỘ LƯỢT CHẠY!`);
   }
 
-  // =========================================================================
-  // 5. CSS & BỐ CỤC GIAO DIỆN SPLIT-VIEW
-  // =========================================================================
+  // 3. CSS TỐI ƯU GIAO DIỆN
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
     #fast-automation-root {
@@ -488,7 +440,7 @@
       left: 10px;
       right: 10px;
       bottom: 10px;
-      background: #f1f5f9;
+      background: #f8fafc;
       border-radius: 12px;
       box-shadow: 0 15px 45px rgba(0,0,0,0.45);
       border: 1px solid #cbd5e1;
@@ -504,13 +456,13 @@
     .fa-split-container { display: flex; flex: 1; overflow: hidden; }
     
     .fa-panel-left {
-      width: 600px;
+      width: 580px;
       background: #ffffff;
       border-right: 1px solid #cbd5e1;
       padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       overflow-y: hidden;
     }
     
@@ -525,7 +477,7 @@
       background: #1e293b;
       color: #f8fafc;
       padding: 6px 14px;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 700;
       display: flex;
       justify-content: space-between;
@@ -539,18 +491,35 @@
     }
 
     .fa-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 10px; }
-    .fa-row-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .fa-row-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .fa-stepper { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 4px; overflow: hidden; background: #fff; }
-    .fa-stepper button { border: none; background: transparent; width: 24px; height: 22px; cursor: pointer; font-weight: bold; }
-    .fa-stepper input { width: 50px; border: none; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; text-align: center; font-weight: bold; font-size: 12px; }
+    .fa-stepper button { border: none; background: transparent; width: 22px; height: 22px; cursor: pointer; font-weight: bold; }
+    .fa-stepper input { width: 48px; border: none; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; text-align: center; font-weight: bold; font-size: 12px; }
     .fa-input { width: 100%; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-weight: bold; color: #2563eb; box-sizing: border-box; }
-    .fa-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 4px; }
-    .fa-grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 4px; }
-    .fa-btn { border: 1px solid #cbd5e1; background: #fff; border-radius: 4px; padding: 3px 0; font-size: 11px; font-weight: 600; cursor: pointer; text-align: center; }
-    .fa-btn:hover { background: #f1f5f9; }
-    .fa-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    
+    /* Gom 12 tháng lên 1 hàng duy nhất (hoặc 2 hàng siêu mảnh) */
+    .fa-grid-12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; margin-top: 4px; }
+    .fa-grid-7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-top: 4px; }
+    .fa-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-top: 3px; }
+
+    /* Thu nhỏ nút: giảm padding từ 3px xuống 1px 0, giảm font-size xuống 10.5px */
+    .fa-btn { 
+      border: 1px solid #cbd5e1; 
+      background: #fff; 
+      border-radius: 3px; 
+      padding: 1.5px 0; 
+      font-size: 10.5px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      text-align: center; 
+      line-height: 16px;
+      transition: all 0.1s;
+    }
+    .fa-btn:hover { background: #e2e8f0; }
+    .fa-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; font-weight: 700; }
+	
     .fa-chk-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: bold; cursor: pointer; }
-    .fa-run-btn { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 700; font-size: 13px; cursor: pointer; width: 100%; margin-top: 6px; }
+    .fa-run-btn { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 7px 16px; font-weight: 700; font-size: 13px; cursor: pointer; width: 100%; margin-top: 5px; }
     .fa-run-btn:hover { background: #1d4ed8; }
     
     .fa-btn-download-direct {
@@ -559,16 +528,13 @@
       border: none;
       border-radius: 4px;
       padding: 4px 12px;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
     }
     .fa-btn-download-direct:hover { background: #047857; }
 
-    .fa-stop-btn { background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 5px 12px; font-weight: 700; font-size: 11px; cursor: pointer; }
+    .fa-stop-btn { background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 4px 10px; font-weight: 700; font-size: 11px; cursor: pointer; }
 
     .fa-task-panel {
       flex: 1;
@@ -585,15 +551,56 @@
       overflow-y: auto;
       border: 1px solid #cbd5e1;
       border-radius: 5px;
-      padding: 6px 10px;
+      padding: 6px 8px;
       background: #ffffff;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 10px;
     }
-    .fa-task-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
-    .fa-badge { font-size: 10px; font-weight: 700; background: #eff6ff; color: #2563eb; padding: 1px 6px; border-radius: 3px; border: 1px solid #bfdbfe; min-width: 32px; text-align: center; }
-    .fa-log-box { background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 11.5px; height: 75px; padding: 6px 10px; border-radius: 6px; overflow-y: auto; white-space: pre-wrap; }
+    
+    .fa-group-header {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #334155;
+      background: #f1f5f9;
+      padding: 3px 6px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 3px solid #2563eb;
+    }
+    .fa-group-items {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-left: 4px;
+    }
+    .fa-task-item { display: flex; align-items: center; gap: 7px; font-size: 12px; }
+
+    .fa-badge-action {
+      font-size: 10.5px;
+      font-weight: 700;
+      background: #eff6ff;
+      color: #2563eb;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #bfdbfe;
+      min-width: 38px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+    .fa-badge-action:hover {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #1d4ed8;
+      box-shadow: 0 1px 4px rgba(37,99,235,0.4);
+      transform: scale(1.05);
+    }
+
+    .fa-log-box { background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 11.5px; height: 70px; padding: 6px 10px; border-radius: 6px; overflow-y: auto; white-space: pre-wrap; }
   `;
   document.head.appendChild(styleEl);
 
@@ -607,7 +614,7 @@
   root.innerHTML = `
     <div class="fa-header">
       <span style="font-weight:700; display:flex; align-items:center; gap:8px;">
-        ⚡ FAST AUTOMATION PORTAL (LIVE SPLIT-VIEW PREVIEW)
+        ⚡ FAST AUTOMATION PORTAL (LIVE SPLIT-VIEW)
       </span>
       <div style="display:flex; gap:8px; align-items:center;">
         <button type="button" class="fa-stop-btn" id="fa-btn-stop" style="display:none;">DỪNG LẠI</button>
@@ -621,39 +628,43 @@
       <div class="fa-panel-left">
         
         <!-- HỘP KỲ BÁO CÁO -->
-        <div class="fa-box">
-          <div class="fa-row-flex">
-            <span style="font-weight:700; font-size:11.5px;">KỲ BÁO CÁO:</span>
+        <div class="fa-box" style="padding: 6px 8px;">
+          <div class="fa-row-flex" style="margin-bottom: 3px;">
+            <span style="font-weight:700; font-size:11px;">KỲ BÁO CÁO:</span>
             <div class="fa-stepper">
-              <button type="button" id="fa-step-dec">−</button>
-              <input type="text" id="fa-year-input" value="${currentBaseYear}">
-              <button type="button" id="fa-step-inc">+</button>
+              <button type="button" id="fa-step-dec" style="width:20px;height:20px;line-height:18px;">−</button>
+              <input type="text" id="fa-year-input" value="${currentBaseYear}" style="width:42px;height:20px;font-size:11px;">
+              <button type="button" id="fa-step-inc" style="width:20px;height:20px;line-height:18px;">+</button>
             </div>
           </div>
           
-          <input type="text" id="fa-period-string" class="fa-input" value="09/${currentBaseYear}">
+          <input type="text" id="fa-period-string" class="fa-input" value="10/${currentBaseYear}" style="padding: 3px 6px; font-size: 11.5px; height: 26px;">
 
-          <div style="margin-top:4px;">
-            <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:2px;">CHỌN CÁC NĂM CẦN CHẠY:</div>
+          <div style="margin-top:3px;">
+            <div style="font-size:10px;font-weight:700;color:#64748b;display:flex;justify-content:space-between;">
+              <span>CHỌN NĂM CẦN CHẠY:</span>
+            </div>
             <div class="fa-grid-5" id="fa-years-container"></div>
           </div>
 
-          <div class="fa-grid-6" id="fa-months-container"></div>
+          <!-- 12 Tháng trên 1 hàng duy nhất (T01 -> T12) -->
+          <div class="fa-grid-12" id="fa-months-container"></div>
 
-          <div class="fa-grid-6">
+          <!-- Quý & Bán niên & Cả năm -->
+          <div class="fa-grid-7">
             <button type="button" class="fa-btn btn-period-q" data-q="1">Q1</button>
             <button type="button" class="fa-btn btn-period-q" data-q="2">Q2</button>
             <button type="button" class="fa-btn btn-period-q" data-q="3">Q3</button>
             <button type="button" class="fa-btn btn-period-q" data-q="4">Q4</button>
-            <button type="button" class="fa-btn btn-period-h" data-h="1">1H</button>
-            <button type="button" class="fa-btn btn-period-h" data-h="2">2H</button>
-            <button type="button" class="fa-btn" id="fa-btn-fullyear">Cả năm</button>
+            <button type="button" class="fa-btn btn-period-h" data-h="1" title="6 Tháng Đầu Năm">1H</button>
+            <button type="button" class="fa-btn btn-period-h" data-h="2" title="6 Tháng Cuối Năm">2H</button>
+            <button type="button" class="fa-btn" id="fa-btn-fullyear" title="Cả năm">Năm</button>
           </div>
 
-          <div style="border-top:1px dashed #cbd5e1;margin-top:4px;padding-top:4px;display:flex;gap:4px;flex-wrap:wrap;">
-            <button type="button" class="fa-btn" style="padding:2px 6px;" id="fa-combo-12m">12 Tháng</button>
-            <button type="button" class="fa-btn" style="padding:2px 6px;" id="fa-combo-4q">4 Quý</button>
-            <button type="button" class="fa-btn" style="padding:2px 6px;" id="fa-combo-all">Năm + 4 Quý</button>
+          <div style="border-top:1px dashed #cbd5e1;margin-top:4px;padding-top:4px;display:flex;gap:4px;">
+            <button type="button" class="fa-btn" style="flex:1;padding:1px 0;" id="fa-combo-12m">12 Tháng</button>
+            <button type="button" class="fa-btn" style="flex:1;padding:1px 0;" id="fa-combo-4q">4 Quý</button>
+            <button type="button" class="fa-btn" style="flex:1;padding:1px 0;" id="fa-combo-all">Năm + 4 Quý</button>
           </div>
         </div>
 
@@ -670,25 +681,24 @@
 
           <div style="display:flex;gap:8px;margin-top:4px;background:#fff;padding:3px 6px;border-radius:4px;border:1px solid #cbd5e1;">
             <label class="fa-chk-tag"><input type="checkbox" class="fa-chk-dvcs" value="CTY"> CTY</label>
-            <label class="fa-chk-tag"><input type="checkbox" class="fa-chk-dvcs" value="D02" checked> D02</label>
+            <label class="fa-chk-tag"><input type="checkbox" class="fa-chk-dvcs" value="D02"> D02</label>
             <label class="fa-chk-tag"><input type="checkbox" class="fa-chk-dvcs" value="D03"> D03</label>
             <label class="fa-chk-tag"><input type="checkbox" class="fa-chk-dvcs" value="D05"> D05</label>
           </div>
 
-          <!-- MẶC ĐỊNH BỎ TÍCH: TÁCH CHI NHÁNH, LẶP NĂM, TỰ TẢI EXCEL -->
           <div style="margin-top:4px;display:flex;justify-content:space-between;align-items:center;">
             <label class="fa-chk-tag"><input type="checkbox" id="fa-opt-split-dvcs"> Tách chi nhánh</label>
             <label class="fa-chk-tag"><input type="checkbox" id="fa-opt-split-year"> Lặp theo năm</label>
             <label class="fa-chk-tag"><input type="checkbox" id="fa-opt-auto-dl"> Tự xuất Excel</label>
           </div>
 
-          <button type="button" class="fa-run-btn" id="fa-btn-run">🚀 CHẠY LỰA CHỌN</button>
+          <button type="button" class="fa-run-btn" id="fa-btn-run">🚀 CHẠY LỰA CHỌN ĐÃ TÍCH</button>
         </div>
 
-        <!-- KHUNG DANH MỤC BÁO CÁO -->
+        <!-- KHUNG DANH MỤC PHÂN THEO NHÓM -->
         <div class="fa-task-panel">
           <div class="fa-row-flex" style="margin-bottom:6px;">
-            <span style="font-weight:700; color:#0f172a;">DANH MỤC BÁO CÁO:</span>
+            <span style="font-weight:700; color:#0f172a;">DANH MỤC (BẤM NÚT XANH CHẠY NGAY):</span>
             <div style="display:flex;gap:4px;">
               <button type="button" class="fa-btn" style="padding:2px 6px;" id="fa-task-select-rep">BCTC (B->E)</button>
               <button type="button" class="fa-btn" style="padding:2px 6px;" id="fa-task-select-all">Hết</button>
@@ -701,7 +711,7 @@
         <div class="fa-log-box" id="fa-console-log">Sẵn sàng điều hướng và hiển thị trực tiếp báo cáo...</div>
       </div>
 
-      <!-- CỘT PHẢI: IFRAME VÀ NÚT TẢI EXCEL TRỰC TIẾP -->
+      <!-- CỘT PHẢI: IFRAME TRỰC TIẾP -->
       <div class="fa-panel-right">
         <div class="fa-preview-bar">
           <span id="fa-preview-title">📺 Màn hình hiển thị Fast Business Online</span>
@@ -712,14 +722,13 @@
             <span id="fa-preview-status" style="font-weight:normal; color:#38bdf8;">Đang chờ lệnh...</span>
           </div>
         </div>
-        <iframe id="fast-automation-worker-iframe" src="${BASE_PATH}rpt_glthue1.aspx?id=03.39.11"></iframe>
+        <iframe id="fast-automation-worker-iframe" src="${BASE_PATH}rpt_incd2.aspx?id=15.30.83"></iframe>
       </div>
 
     </div>
   `;
   document.body.appendChild(root);
 
-  // Click trực tiếp nút Export của Fast
   document.getElementById('fa-btn-quick-export').onclick = () => {
     const doc = getIframeDoc();
     if (doc) {
@@ -734,6 +743,7 @@
   };
 
   const getYear = () => parseInt(document.getElementById('fa-year-input').value, 10) || currentBaseYear;
+  
   const yearsContainer = document.getElementById('fa-years-container');
   for (let i = 4; i >= 0; i--) {
     const y = currentBaseYear - i;
@@ -848,18 +858,57 @@
   };
 
   const taskContainer = document.getElementById('fa-task-container');
-  ALL_TASKS.forEach((t) => {
-    const row = document.createElement('div');
-    row.className = 'fa-task-item';
-    row.innerHTML = `
-      <input type="checkbox" class="fa-chk-task" value="${t.code}" id="fa_task_${t.code}" ${t.code === 'mv' ? 'checked' : ''}>
-      <span class="fa-badge">${t.code.toUpperCase()}</span>
-      <label for="fa_task_${t.code}" style="cursor:pointer; flex:1;">
-        ${t.name} <span style="color:#94a3b8; font-size:11.5px;">(${t.shortName})</span>
-      </label>
+  TASK_GROUPS.forEach((g) => {
+    const grpBox = document.createElement('div');
+    grpBox.innerHTML = `
+      <div class="fa-group-header">
+        <span>[NHÓM ${g.groupCode}] ${g.groupName}</span>
+        <div>
+          <button type="button" class="fa-btn" style="padding:1px 4px;font-size:10px;" onclick="document.querySelectorAll('.chk-grp-${g.groupCode}').forEach(c=>c.checked=true)">Chọn</button>
+          <button type="button" class="fa-btn" style="padding:1px 4px;font-size:10px;" onclick="document.querySelectorAll('.chk-grp-${g.groupCode}').forEach(c=>c.checked=false)">Bỏ</button>
+        </div>
+      </div>
+      <div class="fa-group-items" id="grp_items_${g.groupCode}"></div>
     `;
-    taskContainer.appendChild(row);
+    taskContainer.appendChild(grpBox);
+
+    const itemsBox = grpBox.querySelector(`#grp_items_${g.groupCode}`);
+    g.items.forEach((t) => {
+      const row = document.createElement('div');
+      row.className = 'fa-task-item';
+      row.innerHTML = `
+        <input type="checkbox" class="fa-chk-task chk-grp-${g.groupCode}" value="${t.code}" id="fa_task_${t.code}">
+        <span class="fa-badge-action" title="Nhấp vào để chạy ngay báo cáo này!">${t.code.toUpperCase()}</span>
+        <label for="fa_task_${t.code}" style="cursor:pointer; flex:1;">
+          ${t.name} <span style="color:#94a3b8; font-size:11px;">(${t.shortName})</span>
+        </label>
+      `;
+
+      const badgeBtn = row.querySelector('.fa-badge-action');
+      badgeBtn.onclick = (e) => {
+        e.stopPropagation();
+        runSingleTaskImmediately(t.code);
+      };
+
+      itemsBox.appendChild(row);
+    });
   });
+
+  // Chạy ngay 1 báo cáo với toàn bộ chi nhánh đang được tích
+  function runSingleTaskImmediately(taskCode) {
+    const period = document.getElementById('fa-period-string').value;
+    const branches = getActiveBranchesString();
+    const autoDownload = document.getElementById('fa-opt-auto-dl').checked;
+
+    const queue = [{
+      taskCode: taskCode,
+      period: period,
+      dvcs: branches,
+      autoDownload: autoDownload
+    }];
+
+    processAutomationQueue(queue);
+  }
 
   document.getElementById('fa-task-select-all').onclick = () => {
     document.querySelectorAll('.fa-chk-task').forEach((c) => (c.checked = true));
@@ -880,10 +929,11 @@
     document.getElementById('fa-btn-stop').style.display = 'none';
   };
 
+  // Nút chạy hàng loạt
   document.getElementById('fa-btn-run').onclick = () => {
     const selectedTasks = Array.from(document.querySelectorAll('.fa-chk-task:checked')).map((c) => c.value);
     if (selectedTasks.length === 0) {
-      alert('Vui lòng chọn ít nhất 1 nghiệp vụ/báo cáo!');
+      alert('Vui lòng tích chọn ít nhất 1 nghiệp vụ/báo cáo!');
       return;
     }
 
@@ -910,15 +960,15 @@
       }
     });
 
-    const rawDvcs = dvcsInput.value.trim();
+    const branchesStr = getActiveBranchesString();
     const splitDvcs = document.getElementById('fa-opt-split-dvcs').checked;
     let branchList = [''];
-    if (rawDvcs) {
-      const tokens = rawDvcs.split(',').map((s) => s.trim()).filter(Boolean);
+    if (branchesStr) {
+      const tokens = branchesStr.split(',').map((s) => s.trim()).filter(Boolean);
       if (splitDvcs && tokens.length > 1) {
         branchList = tokens;
       } else {
-        branchList = [rawDvcs];
+        branchList = [branchesStr];
       }
     }
 
@@ -938,7 +988,6 @@
       }
     }
 
-    document.getElementById('fa-btn-stop').style.display = 'inline-block';
     processAutomationQueue(queue);
   };
 
