@@ -646,6 +646,7 @@
             <button type="button" class="fa-btn btn-period-q" data-q="3">Q3</button>
             <button type="button" class="fa-btn btn-period-q" data-q="4">Q4</button>
             <button type="button" class="fa-btn btn-period-h" data-h="1">1H</button>
+            <button type="button" class="fa-btn btn-period-h" data-h="2">2H</button>
             <button type="button" class="fa-btn" id="fa-btn-fullyear">Cả năm</button>
           </div>
 
