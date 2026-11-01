@@ -10,6 +10,18 @@
   const DEFAULT_BTN_OK = '#ctl00_FastBusiness_MainReport_searchExtender_updateDlgOk';
   const DIALOG_MSG_OK = '#ctl00_FastBusiness_MainReport_DialogMessage_dlgOk';
 
+  // Hàm đổi tên thẻ tab trình duyệt ngay lập tức
+  function updateBrowserTabTitle(taskShortName, periodLabel, dvcs) {
+    const branchPart = dvcs ? ` - ${dvcs.trim()}` : '';
+    const newTitle = `${taskShortName} (${periodLabel})${branchPart}`;
+    try {
+      if (window.top && window.top.document) {
+        window.top.document.title = newTitle;
+      }
+    } catch (e) {}
+    document.title = newTitle;
+  }
+
   // 2. Danh mục tác vụ phân nhóm A -> E chuẩn hóa selector ĐVCS cho Nhóm B
   const TASK_GROUPS = [
     {
@@ -70,17 +82,19 @@
 
   const formatDate = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 
-  function parsePeriodString(rawInput) {
+  // Tính toán thời gian (Có hỗ trợ tùy chọn "Tính từ ngày đầu năm 01/01")
+  function parsePeriodString(rawInput, fromStartOfYear = false) {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1;
     const s = (rawInput || '').trim().toUpperCase();
 
-    if (!s) return parseMonthPeriod(currentMonth, currentYear);
-
-    if (/^\d{4}$/.test(s) || /^NAM[_ ]?(\d{4})$/.test(s)) {
+    let p = null;
+    if (!s) {
+      p = parseMonthPeriod(currentMonth, currentYear);
+    } else if (/^\d{4}$/.test(s) || /^NAM[_ ]?(\d{4})$/.test(s)) {
       const y = parseInt(s.match(/\d{4}/)[0], 10);
-      return {
+      p = {
         labelKy: `Nam${y}`,
         tuNgay: `01/01/${y}`,
         denNgay: `31/12/${y}`,
@@ -90,46 +104,56 @@
         denThang: '12',
         nam: String(y)
       };
+    } else {
+      const hMatch = s.match(/^([12])H[\/\-_ ]?(\d{4})?$/);
+      if (hMatch) {
+        const h = parseInt(hMatch[1], 10);
+        const y = parseInt(hMatch[2] || currentYear, 10);
+        const startM = h === 1 ? 0 : 6;
+        const endM = h === 1 ? 6 : 12;
+        p = {
+          labelKy: `${h}H_${y}`,
+          tuNgay: formatDate(new Date(y, startM, 1)),
+          denNgay: formatDate(new Date(y, endM, 0)),
+          kyTruocTu: formatDate(new Date(y - 1, startM, 1)),
+          kyTruocDen: formatDate(new Date(y - 1, endM, 0)),
+          tuThang: h === 1 ? '1' : '7',
+          denThang: h === 1 ? '6' : '12',
+          nam: String(y)
+        };
+      } else {
+        const qMatch = s.match(/^Q([1-4])[\/\-_ ]?(\d{4})?$/);
+        if (qMatch) {
+          const q = parseInt(qMatch[1], 10);
+          const y = parseInt(qMatch[2] || currentYear, 10);
+          p = {
+            labelKy: `Q${q}_${y}`,
+            tuNgay: formatDate(new Date(y, (q - 1) * 3, 1)),
+            denNgay: formatDate(new Date(y, q * 3, 0)),
+            kyTruocTu: formatDate(new Date(y - 1, (q - 1) * 3, 1)),
+            kyTruocDen: formatDate(new Date(y - 1, q * 3, 0)),
+            tuThang: String((q - 1) * 3 + 1),
+            denThang: String(q * 3),
+            nam: String(y)
+          };
+        } else {
+          const mMatch = s.match(/^(?:T)?(\d{1,2})[\/\-_ ](\d{4})$/);
+          if (mMatch) {
+            p = parseMonthPeriod(parseInt(mMatch[1], 10), parseInt(mMatch[2], 10));
+          } else {
+            p = parseMonthPeriod(currentMonth, currentYear);
+          }
+        }
+      }
     }
 
-    const hMatch = s.match(/^([12])H[\/\-_ ]?(\d{4})?$/);
-    if (hMatch) {
-      const h = parseInt(hMatch[1], 10);
-      const y = parseInt(hMatch[2] || currentYear, 10);
-      const startM = h === 1 ? 0 : 6;
-      const endM = h === 1 ? 6 : 12;
-      return {
-        labelKy: `${h}H_${y}`,
-        tuNgay: formatDate(new Date(y, startM, 1)),
-        denNgay: formatDate(new Date(y, endM, 0)),
-        kyTruocTu: formatDate(new Date(y - 1, startM, 1)),
-        kyTruocDen: formatDate(new Date(y - 1, endM, 0)),
-        tuThang: h === 1 ? '1' : '7',
-        denThang: h === 1 ? '6' : '12',
-        nam: String(y)
-      };
+    // Nếu chọn tính từ đầu năm: đè tuNgay = 01/01 của năm đó
+    if (fromStartOfYear && p) {
+      p.tuNgay = `01/01/${p.nam}`;
+      p.kyTruocTu = `01/01/${parseInt(p.nam, 10) - 1}`;
     }
 
-    const qMatch = s.match(/^Q([1-4])[\/\-_ ]?(\d{4})?$/);
-    if (qMatch) {
-      const q = parseInt(qMatch[1], 10);
-      const y = parseInt(qMatch[2] || currentYear, 10);
-      return {
-        labelKy: `Q${q}_${y}`,
-        tuNgay: formatDate(new Date(y, (q - 1) * 3, 1)),
-        denNgay: formatDate(new Date(y, q * 3, 0)),
-        kyTruocTu: formatDate(new Date(y - 1, (q - 1) * 3, 1)),
-        kyTruocDen: formatDate(new Date(y - 1, q * 3, 0)),
-        tuThang: String((q - 1) * 3 + 1),
-        denThang: String(q * 3),
-        nam: String(y)
-      };
-    }
-
-    const mMatch = s.match(/^(?:T)?(\d{1,2})[\/\-_ ](\d{4})$/);
-    if (mMatch) return parseMonthPeriod(parseInt(mMatch[1], 10), parseInt(mMatch[2], 10));
-
-    return parseMonthPeriod(currentMonth, currentYear);
+    return p;
   }
 
   function parseMonthPeriod(m, y) {
@@ -158,6 +182,38 @@
   function getIframeDoc() {
     const frame = document.getElementById('fast-automation-worker-iframe');
     return frame ? (frame.contentDocument || frame.contentWindow.document) : null;
+  }
+
+  // Hàm kích hoạt Làm tươi báo cáo ($find(...).goToPage(-1))
+  function reloadMainReport() {
+    try {
+      const frame = document.getElementById('fast-automation-worker-iframe');
+      const frameWin = frame ? frame.contentWindow : window;
+      const targetWin = (frameWin && typeof frameWin.$find === 'function') ? frameWin : window;
+
+      if (typeof targetWin.$find === 'function') {
+        const report = targetWin.$find('ctl00_FastBusiness_MainReport');
+        if (report && typeof report.goToPage === 'function') {
+          report.goToPage(-1);
+          logPanel(`🔄 Đã gọi lệnh Làm tươi báo cáo.`);
+          return;
+        }
+      }
+
+      // Thử click trực tiếp thẻ a class="PaddedLink" chứa text Làm tươi
+      const doc = getIframeDoc() || document;
+      const links = Array.from(doc.querySelectorAll('a.PaddedLink, a'));
+      const refreshLink = links.find(a => (a.innerText || '').includes('Làm tươi') || (a.getAttribute('onclick') || '').includes('goToPage(-1)'));
+      if (refreshLink) {
+        refreshLink.click();
+        logPanel(`🔄 Đã click nút Làm tươi trên giao diện.`);
+        return;
+      }
+
+      logPanel(`⚠ Không tìm thấy hàm $find('ctl00_FastBusiness_MainReport') để làm tươi.`);
+    } catch (e) {
+      logPanel(`❌ Lỗi khi làm tươi: ${e.message}`);
+    }
   }
 
   async function loadPageInIframe(url) {
@@ -273,7 +329,6 @@
     }
   }
 
-  // Lấy chính xác chuỗi chi nhánh từ Checkbox hoặc Input
   function getActiveBranchesString() {
     const checkedBoxes = Array.from(document.querySelectorAll('.fa-chk-dvcs:checked')).map(c => c.value.trim());
     if (checkedBoxes.length > 0) {
@@ -290,20 +345,25 @@
     if (stopBtn) stopBtn.style.display = 'inline-block';
     logPanel(`\n>>> 🚀 BẮT ĐẦU CHẠY ${queue.length} TÁC VỤ...`);
 
+    const fromStartOfYear = document.getElementById('fa-opt-from-start-year').checked;
+
     for (let i = 0; i < queue.length; i++) {
       if (!isRunning) break;
       const item = queue[i];
       const task = ALL_TASKS.find(t => t.code === item.taskCode);
       if (!task) continue;
 
-      const times = parsePeriodString(item.period);
+      const times = parsePeriodString(item.period, fromStartOfYear);
       const dvcs = item.dvcs;
       const targetUrl = `${BASE_PATH}${task.path}`;
+
+      // Đổi tiêu đề Tab trình duyệt ngay lập tức
+      updateBrowserTabTitle(task.shortName, times.labelKy, dvcs);
 
       const titleEl = document.getElementById('fa-preview-title');
       if (titleEl) titleEl.innerText = `[${task.shortName}] ${task.name} (${times.labelKy})`;
 
-      logPanel(`\n[${i + 1}/${queue.length}] ${task.name} | Kỳ: ${times.labelKy} | ĐVCS: "${dvcs || ''}"`);
+      logPanel(`\n[${i + 1}/${queue.length}] ${task.name} | Kỳ: ${times.labelKy} (Từ: ${times.tuNgay} -> ${times.denNgay}) | ĐVCS: "${dvcs || ''}"`);
 
       await loadPageInIframe(targetUrl);
       await sleep(1500);
@@ -360,7 +420,7 @@
       if (task.inputs.chonTt) selectFrameOption(await waitFrameSelector(task.inputs.chonTt), task.code === 'tk3' ? '5' : '0');
       if (task.code === 'tk3' && task.inputs.loaiBaoCao) selectFrameOption(await waitFrameSelector(task.inputs.loaiBaoCao), 'V20GLTHUE3_284');
 
-      // Điền ĐVCS: Tăng cường tìm kiếm chính xác cho nhóm B (CDKT, NKC, CD, KQ, CP)
+      // Điền ĐVCS
       if (task.inputs.maDvcs) {
         let elDvcs = await waitFrameSelector(task.inputs.maDvcs, 4000);
         if (!elDvcs) {
@@ -497,12 +557,10 @@
     .fa-stepper input { width: 48px; border: none; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; text-align: center; font-weight: bold; font-size: 12px; }
     .fa-input { width: 100%; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-weight: bold; color: #2563eb; box-sizing: border-box; }
     
-    /* Gom 12 tháng lên 1 hàng duy nhất (hoặc 2 hàng siêu mảnh) */
     .fa-grid-12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; margin-top: 4px; }
     .fa-grid-7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-top: 4px; }
     .fa-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-top: 3px; }
 
-    /* Thu nhỏ nút: giảm padding từ 3px xuống 1px 0, giảm font-size xuống 10.5px */
     .fa-btn { 
       border: 1px solid #cbd5e1; 
       background: #fff; 
@@ -527,12 +585,24 @@
       color: #fff;
       border: none;
       border-radius: 4px;
-      padding: 4px 12px;
+      padding: 4px 10px;
       font-size: 11.5px;
       font-weight: 700;
       cursor: pointer;
     }
     .fa-btn-download-direct:hover { background: #047857; }
+
+    .fa-btn-reload-report {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .fa-btn-reload-report:hover { background: #0369a1; }
 
     .fa-stop-btn { background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 4px 10px; font-weight: 700; font-size: 11px; cursor: pointer; }
 
@@ -604,9 +674,23 @@
   `;
   document.head.appendChild(styleEl);
 
-  const currentBaseYear = new Date().getFullYear();
+  // 4. MẶC ĐỊNH KỲ BÁO CÁO: NẾU NGÀY HIỆN TẠI < 10 THÌ LẤY THÁNG TRƯỚC
+  const now = new Date();
+  const curDay = now.getDate();
+  let defaultMonth = now.getMonth() + 1;
+  let currentBaseYear = now.getFullYear();
+
+  if (curDay < 10) {
+    if (defaultMonth === 1) {
+      defaultMonth = 12;
+      currentBaseYear -= 1;
+    } else {
+      defaultMonth -= 1;
+    }
+  }
+
   let currentPeriodType = 'M';
-  let currentPeriodVal = '09';
+  let currentPeriodVal = String(defaultMonth).padStart(2, '0');
   let batchMode = 'SINGLE';
 
   const root = document.createElement('div');
@@ -638,7 +722,7 @@
             </div>
           </div>
           
-          <input type="text" id="fa-period-string" class="fa-input" value="10/${currentBaseYear}" style="padding: 3px 6px; font-size: 11.5px; height: 26px;">
+          <input type="text" id="fa-period-string" class="fa-input" value="${currentPeriodVal}/${currentBaseYear}" style="padding: 3px 6px; font-size: 11.5px; height: 26px;">
 
           <div style="margin-top:3px;">
             <div style="font-size:10px;font-weight:700;color:#64748b;display:flex;justify-content:space-between;">
@@ -668,7 +752,7 @@
           </div>
         </div>
 
-        <!-- HỘP ĐVCS & NÚT CHẠY -->
+        <!-- HỘP ĐVCS & TÙY CHỌN & NÚT CHẠY -->
         <div class="fa-box">
           <div class="fa-row-flex">
             <span style="font-weight:700; font-size:11.5px;">CHI NHÁNH:</span>
@@ -686,7 +770,10 @@
             <label class="fa-chk-tag"><input type="checkbox" class="fa-chk-dvcs" value="D05"> D05</label>
           </div>
 
-          <div style="margin-top:4px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <label class="fa-chk-tag" title="Tính từ ngày 01/01 đến cuối kỳ báo cáo đã chọn">
+              <input type="checkbox" id="fa-opt-from-start-year"> Từ đầu năm (01/01)
+            </label>
             <label class="fa-chk-tag"><input type="checkbox" id="fa-opt-split-dvcs"> Tách chi nhánh</label>
             <label class="fa-chk-tag"><input type="checkbox" id="fa-opt-split-year"> Lặp theo năm</label>
             <label class="fa-chk-tag"><input type="checkbox" id="fa-opt-auto-dl"> Tự xuất Excel</label>
@@ -715,7 +802,10 @@
       <div class="fa-panel-right">
         <div class="fa-preview-bar">
           <span id="fa-preview-title">📺 Màn hình hiển thị Fast Business Online</span>
-          <div style="display:flex; gap:10px; align-items:center;">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button type="button" class="fa-btn-reload-report" id="fa-btn-reload-report" title="Làm tươi lại báo cáo trong iframe">
+              🔄 LÀM TƯƠI BÁO CÁO
+            </button>
             <button type="button" class="fa-btn-download-direct" id="fa-btn-quick-export" title="Click nhanh nút Export Excel của Fast">
               📥 TẢI EXCEL NGAY
             </button>
@@ -728,6 +818,11 @@
     </div>
   `;
   document.body.appendChild(root);
+
+  // Gắn sự kiện nút "Làm tươi báo cáo"
+  document.getElementById('fa-btn-reload-report').onclick = () => {
+    reloadMainReport();
+  };
 
   document.getElementById('fa-btn-quick-export').onclick = () => {
     const doc = getIframeDoc();
@@ -759,7 +854,7 @@
     const mStr = String(m).padStart(2, '0');
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = `fa-btn btn-period-m ${mStr === '09' ? 'active' : ''}`;
+    btn.className = `fa-btn btn-period-m ${mStr === currentPeriodVal ? 'active' : ''}`;
     btn.setAttribute('data-m', mStr);
     btn.innerText = `T${mStr}`;
     btn.onclick = () => {
@@ -894,7 +989,6 @@
     });
   });
 
-  // Chạy ngay 1 báo cáo với toàn bộ chi nhánh đang được tích
   function runSingleTaskImmediately(taskCode) {
     const period = document.getElementById('fa-period-string').value;
     const branches = getActiveBranchesString();
@@ -929,7 +1023,6 @@
     document.getElementById('fa-btn-stop').style.display = 'none';
   };
 
-  // Nút chạy hàng loạt
   document.getElementById('fa-btn-run').onclick = () => {
     const selectedTasks = Array.from(document.querySelectorAll('.fa-chk-task:checked')).map((c) => c.value);
     if (selectedTasks.length === 0) {
