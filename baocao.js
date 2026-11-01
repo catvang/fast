@@ -54,7 +54,8 @@
       items: [
         { code: 'nxt', name: 'Nhập xuất tồn theo kho', shortName: 'Nxt', path: 'rpt_incd2.aspx?id=15.30.83', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
         { code: 'vb', name: 'Tồn kho vỏ bình theo vị trí', shortName: 'Tkvb-Vt', path: 'zcbcthnxttvtrvb.aspx?id=38.40.02', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
-        { code: 'tk', name: 'NXT kho theo tài khoản', shortName: 'Nxt-Tk', path: 'rpt_incd1.aspx?id=15.30.82', inputType: 'DATE', inputs: { tuNgay: '[id*="formCell_1.3"], [id*="tu_ngay"]', denNgay: '[id*="formCell_1.4"], [id*="den_ngay"]', maDvcs: '[id*="formCell_4.5"], [id*="ma_dvcs"]' } }
+        // Đổi code từ 'tk' thành 'nxtk'
+        { code: 'nxtk', name: 'NXT kho theo tài khoản', shortName: 'Nxt-Tk', path: 'rpt_incd1.aspx?id=15.30.82', inputType: 'DATE', inputs: { tuNgay: '[id*="formCell_1.3"], [id*="tu_ngay"]', denNgay: '[id*="formCell_1.4"], [id*="den_ngay"]', maDvcs: '[id*="formCell_4.5"], [id*="ma_dvcs"]' } }
       ]
     },
     {
@@ -1011,7 +1012,8 @@
     document.querySelectorAll('.fa-chk-task').forEach((c) => (c.checked = false));
   };
   document.getElementById('fa-task-select-rep').onclick = () => {
-    const repCodes = ['cdkt', 'nkc', 'cd', 'kq', 'cp', 'nxt', 'vb', 'tk', 'bh', 'mv', 'br', 'tk3', 'kh', 'cc', 'cn'];
+    // Cập nhật 'nxtk' thay cho 'tk'
+    const repCodes = ['cdkt', 'nkc', 'cd', 'kq', 'cp', 'nxt', 'vb', 'nxtk', 'bh', 'mv', 'br', 'tk3', 'kh', 'cc', 'cn'];
     document.querySelectorAll('.fa-chk-task').forEach((c) => {
       c.checked = repCodes.includes(c.value);
     });
