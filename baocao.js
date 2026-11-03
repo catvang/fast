@@ -1,5 +1,5 @@
-(function runFastPortalFixDvcsGroupB() {
-  // 1. Xóa giao diện cũ
+(function runFastPortalWithManualDateInputs() {
+  // 1. Xóa giao diện cũ nếu tồn tại
   const oldRoot = document.getElementById('fast-automation-root');
   if (oldRoot) oldRoot.remove();
   const oldIframe = document.getElementById('fast-automation-worker-iframe');
@@ -22,7 +22,7 @@
     document.title = newTitle;
   }
 
-  // 2. Danh mục tác vụ phân nhóm A -> E chuẩn hóa selector ĐVCS cho Nhóm B
+  // 2. Danh mục tác vụ phân nhóm A -> E
   const TASK_GROUPS = [
     {
       groupCode: 'A',
@@ -54,7 +54,6 @@
       items: [
         { code: 'nxt', name: 'Nhập xuất tồn theo kho', shortName: 'Nxt', path: 'rpt_incd2.aspx?id=15.30.83', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
         { code: 'vb', name: 'Tồn kho vỏ bình theo vị trí', shortName: 'Tkvb-Vt', path: 'zcbcthnxttvtrvb.aspx?id=38.40.02', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
-        // Đổi code từ 'tk' thành 'nxtk'
         { code: 'nxtk', name: 'NXT kho theo tài khoản', shortName: 'Nxt-Tk', path: 'rpt_incd1.aspx?id=15.30.82', inputType: 'DATE', inputs: { tuNgay: '[id*="formCell_1.3"], [id*="tu_ngay"]', denNgay: '[id*="formCell_1.4"], [id*="den_ngay"]', maDvcs: '[id*="formCell_4.5"], [id*="ma_dvcs"]' } }
       ]
     },
@@ -74,16 +73,76 @@
       items: [
         { code: 'kh', name: 'Bảng khấu hao TSCĐ', shortName: 'Bkh-Tscd', path: 'rpt_fabckh.aspx?id=18.70.81', inputType: 'MONTH_DUAL_YEAR', inputs: { tuThang: '[id*="formCell_1.2"]', tuNam: '[id*="tu_nam"]', denThang: '[id*="formCell_2.2"]', denNam: '[id*="formCell_2.3"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
         { code: 'cc', name: 'Bảng tính chi phí CCDC', shortName: 'Btcp-Ccdc', path: 'rpt_btcpccdc.aspx?id=22.40.02', inputType: 'MONTH_DUAL_YEAR', inputs: { tuThang: '[id*="formCell_1.2"]', tuNam: '[id*="tu_nam"]', denThang: '[id*="formCell_2.2"]', denNam: '[id*="formCell_2.3"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
-        { code: 'cn', name: 'Cân đối phát sinh công nợ', shortName: 'Cdcn', path: 'rpt_arcd2.aspx?id=07.30.16', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } }
+        { code: 'cn', name: 'Cân đối phát sinh công nợ', shortName: 'Cdcn', path: 'rpt_arcd2.aspx?id=07.30.16', inputType: 'DATE', inputs: { tuNgay: '[id*="tu_ngay"]', denNgay: '[id*="den_ngay"]', maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } },
+        // Nghiệp vụ bổ sung mới
+        { 
+          code: 'htt', 
+          name: 'Bảng kê công nợ của các HĐ theo hạn thanh toán', 
+          shortName: 'Bkcn-Htt', 
+          path: 'rpt_arttbk3.aspx?id=07.30.46', 
+          inputType: 'DATE_HAN_TT', 
+          inputs: { 
+            tinhDenNgay: '#ctl00_FastBusiness_MainReport_searchExtender0_formCell_1_1, [id*="searchExtender0_formCell_1.1"], [id*="formCell_1.1"]', 
+            ngayTinhHtt: '#ctl00_FastBusiness_MainReport_searchExtender0_formCell_2_1, [id*="searchExtender0_formCell_2.1"], [id*="formCell_2.1"]', 
+            maDvcs: '#ctl00_FastBusiness_MainReport_searchExtender_form_ma_dvcs, [id$="ma_dvcs"]' } }
       ]
     }
   ];
 
   const ALL_TASKS = TASK_GROUPS.flatMap(g => g.items);
 
-  const formatDate = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+  const pad = (n) => String(n).padStart(2, '0');
+  const formatDate = (d) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
 
-  // Tính toán thời gian (Có hỗ trợ tùy chọn "Tính từ ngày đầu năm 01/01")
+  // Kiểm tra chuỗi DD/MM/YYYY hợp lệ
+  function isValidDateStr(str) {
+    if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) return false;
+    const parts = str.split('/');
+    const d = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const y = parseInt(parts[2], 10);
+    if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+    const testDate = new Date(y, m - 1, d);
+    return testDate.getDate() === d && testDate.getMonth() === m - 1;
+  }
+
+  // Phân tích khoảng thời gian: Ưu tiên đọc trực tiếp từ ô Từ ngày - Đến ngày
+  function resolveReportTimeRange(rawPeriodString, fromStartOfYear = false) {
+    const fromInput = document.getElementById('fa-from-date-input');
+    const toInput = document.getElementById('fa-to-date-input');
+    const fVal = fromInput ? fromInput.value.trim() : '';
+    const tVal = toInput ? toInput.value.trim() : '';
+
+    // Nếu người dùng nhập ngày tùy biến hợp lệ ở 2 ô input
+    if (isValidDateStr(fVal) && isValidDateStr(tVal)) {
+      const fParts = fVal.split('/');
+      const tParts = tVal.split('/');
+      const fM = parseInt(fParts[1], 10);
+      const fY = parseInt(fParts[2], 10);
+      const tM = parseInt(tParts[1], 10);
+      const tY = parseInt(tParts[2], 10);
+
+      let finalFromDate = fVal;
+      if (fromStartOfYear) {
+        finalFromDate = `01/01/${tY}`;
+      }
+
+      return {
+        labelKy: `${fVal.replace(/\//g, '')}-${tVal.replace(/\//g, '')}`,
+        tuNgay: finalFromDate,
+        denNgay: tVal,
+        kyTruocTu: `01/01/${tY - 1}`,
+        kyTruocDen: `31/12/${tY - 1}`,
+        tuThang: String(fM),
+        denThang: String(tM),
+        nam: String(tY)
+      };
+    }
+
+    // Nếu không, phân tích theo chuỗi ký hiệu kỳ
+    return parsePeriodString(rawPeriodString, fromStartOfYear);
+  }
+
   function parsePeriodString(rawInput, fromStartOfYear = false) {
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -148,7 +207,6 @@
       }
     }
 
-    // Nếu chọn tính từ đầu năm: đè tuNgay = 01/01 của năm đó
     if (fromStartOfYear && p) {
       p.tuNgay = `01/01/${p.nam}`;
       p.kyTruocTu = `01/01/${parseInt(p.nam, 10) - 1}`;
@@ -159,7 +217,7 @@
 
   function parseMonthPeriod(m, y) {
     return {
-      labelKy: `T${String(m).padStart(2, '0')}_${y}`,
+      labelKy: `T${pad(m)}_${y}`,
       tuNgay: formatDate(new Date(y, m - 1, 1)),
       denNgay: formatDate(new Date(y, m, 0)),
       kyTruocTu: formatDate(new Date(y - 1, m - 1, 1)),
@@ -185,7 +243,6 @@
     return frame ? (frame.contentDocument || frame.contentWindow.document) : null;
   }
 
-  // Hàm kích hoạt Làm tươi báo cáo ($find(...).goToPage(-1))
   function reloadMainReport() {
     try {
       const frame = document.getElementById('fast-automation-worker-iframe');
@@ -201,7 +258,6 @@
         }
       }
 
-      // Thử click trực tiếp thẻ a class="PaddedLink" chứa text Làm tươi
       const doc = getIframeDoc() || document;
       const links = Array.from(doc.querySelectorAll('a.PaddedLink, a'));
       const refreshLink = links.find(a => (a.innerText || '').includes('Làm tươi') || (a.getAttribute('onclick') || '').includes('goToPage(-1)'));
@@ -354,7 +410,8 @@
       const task = ALL_TASKS.find(t => t.code === item.taskCode);
       if (!task) continue;
 
-      const times = parsePeriodString(item.period, fromStartOfYear);
+      // Tính toán dải ngày ưu tiên từ 2 ô input Từ ngày - Đến ngày
+      const times = resolveReportTimeRange(item.period, fromStartOfYear);
       const dvcs = item.dvcs;
       const targetUrl = `${BASE_PATH}${task.path}`;
 
@@ -364,13 +421,14 @@
       const titleEl = document.getElementById('fa-preview-title');
       if (titleEl) titleEl.innerText = `[${task.shortName}] ${task.name} (${times.labelKy})`;
 
-      logPanel(`\n[${i + 1}/${queue.length}] ${task.name} | Kỳ: ${times.labelKy} (Từ: ${times.tuNgay} -> ${times.denNgay}) | ĐVCS: "${dvcs || ''}"`);
+      logPanel(`\n[${i + 1}/${queue.length}] ${task.name} | Kỳ: ${times.labelKy} (Từ: ${times.tuNgay} -> Đến: ${times.denNgay}) | ĐVCS: "${dvcs || ''}"`);
 
       await loadPageInIframe(targetUrl);
       await sleep(1500);
 
-      const rawFirstInput = (task.inputType === 'DATE' || task.inputType === 'DATE_MULTI_CELL') ? task.inputs.tuNgay
-        : (task.inputType === 'DATE_COMPARISON' ? (task.inputs.kyNayTu || task.inputs.kyNayDen) : (task.inputs.thang || task.inputs.tuThang));
+      const rawFirstInput = (task.inputType === 'DATE_HAN_TT') ? task.inputs.tinhDenNgay
+        : ((task.inputType === 'DATE' || task.inputType === 'DATE_MULTI_CELL') ? task.inputs.tuNgay
+        : (task.inputType === 'DATE_COMPARISON' ? (task.inputs.kyNayTu || task.inputs.kyNayDen) : (task.inputs.thang || task.inputs.tuThang)));
 
       let firstInput = await waitFrameSelector(rawFirstInput, 3000);
       if (!firstInput) {
@@ -384,8 +442,14 @@
         continue;
       }
 
-      // Điền thời gian
-      if (task.inputType === 'DATE' || task.inputType === 'DATE_MULTI_CELL') {
+      // Điền thời gian chính xác
+      // Điền thời gian chính xác
+      if (task.inputType === 'DATE_HAN_TT') {
+        // Lấy ngày mốc cuối kỳ (Đến ngày) để điền vào "Tính đến ngày" và "Ngày tính hạn TT"
+        fillFrameInput(firstInput, times.denNgay);
+        const elNgayHtt = await waitFrameSelector(task.inputs.ngayTinhHtt, 3000);
+        if (elNgayHtt) fillFrameInput(elNgayHtt, times.denNgay);
+      } else if (task.inputType === 'DATE' || task.inputType === 'DATE_MULTI_CELL') {
         fillFrameInput(firstInput, times.tuNgay);
         fillFrameInput(await waitFrameSelector(task.inputs.denNgay), times.denNgay);
         if (task.inputs.tkList) fillFrameInput(await waitFrameSelector(task.inputs.tkList), '632,641,642,811');
@@ -492,7 +556,7 @@
     logPanel(`\n>>> 🎉 HOÀN TẤT TOÀN BỘ LƯỢT CHẠY!`);
   }
 
-  // 3. CSS TỐI ƯU GIAO DIỆN
+  // 3. CSS GIAO DIỆN
   const styleEl = document.createElement('style');
   styleEl.innerHTML = `
     #fast-automation-root {
@@ -558,6 +622,29 @@
     .fa-stepper input { width: 48px; border: none; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; text-align: center; font-weight: bold; font-size: 12px; }
     .fa-input { width: 100%; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-weight: bold; color: #2563eb; box-sizing: border-box; }
     
+    .fa-date-range-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .fa-date-input {
+      flex: 1;
+      padding: 4px 6px;
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: bold;
+      color: #0369a1;
+      background: #ffffff;
+      text-align: center;
+    }
+    .fa-date-input:focus {
+      outline: none;
+      border-color: #0284c7;
+      box-shadow: 0 0 0 2px rgba(2,132,199,0.2);
+    }
+
     .fa-grid-12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; margin-top: 4px; }
     .fa-grid-7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-top: 4px; }
     .fa-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-top: 3px; }
@@ -675,7 +762,7 @@
   `;
   document.head.appendChild(styleEl);
 
-  // 4. MẶC ĐỊNH KỲ BÁO CÁO: NẾU NGÀY HIỆN TẠI < 10 THÌ LẤY THÁNG TRƯỚC
+  // 4. MẶC ĐỊNH KỲ: NẾU NGÀY < 10 LẤY THÁNG TRƯỚC
   const now = new Date();
   const curDay = now.getDate();
   let defaultMonth = now.getMonth() + 1;
@@ -691,7 +778,7 @@
   }
 
   let currentPeriodType = 'M';
-  let currentPeriodVal = String(defaultMonth).padStart(2, '0');
+  let currentPeriodVal = pad(defaultMonth);
   let batchMode = 'SINGLE';
 
   const root = document.createElement('div');
@@ -712,7 +799,7 @@
       <!-- CỘT TRÁI -->
       <div class="fa-panel-left">
         
-        <!-- HỘP KỲ BÁO CÁO -->
+        <!-- HỘP KỲ BÁO CÁO & 2 Ô TỪ NGÀY - ĐẾN NGÀY -->
         <div class="fa-box" style="padding: 6px 8px;">
           <div class="fa-row-flex" style="margin-bottom: 3px;">
             <span style="font-weight:700; font-size:11px;">KỲ BÁO CÁO:</span>
@@ -725,6 +812,14 @@
           
           <input type="text" id="fa-period-string" class="fa-input" value="${currentPeriodVal}/${currentBaseYear}" style="padding: 3px 6px; font-size: 11.5px; height: 26px;">
 
+          <!-- BỔ SUNG 2 Ô NHẬP TỪ NGÀY - ĐẾN NGÀY TÙY CHỈNH -->
+          <div class="fa-date-range-row">
+            <span style="font-size:11px;font-weight:bold;color:#475569;">Từ:</span>
+            <input type="text" id="fa-from-date-input" class="fa-date-input" placeholder="DD/MM/YYYY" title="Từ ngày">
+            <span style="font-size:11px;font-weight:bold;color:#475569;">Đến:</span>
+            <input type="text" id="fa-to-date-input" class="fa-date-input" placeholder="DD/MM/YYYY" title="Đến ngày">
+          </div>
+
           <div style="margin-top:3px;">
             <div style="font-size:10px;font-weight:700;color:#64748b;display:flex;justify-content:space-between;">
               <span>CHỌN NĂM CẦN CHẠY:</span>
@@ -732,7 +827,7 @@
             <div class="fa-grid-5" id="fa-years-container"></div>
           </div>
 
-          <!-- 12 Tháng trên 1 hàng duy nhất (T01 -> T12) -->
+          <!-- 12 Tháng trên 1 hàng -->
           <div class="fa-grid-12" id="fa-months-container"></div>
 
           <!-- Quý & Bán niên & Cả năm -->
@@ -820,7 +915,6 @@
   `;
   document.body.appendChild(root);
 
-  // Gắn sự kiện nút "Làm tươi báo cáo"
   document.getElementById('fa-btn-reload-report').onclick = () => {
     reloadMainReport();
   };
@@ -852,7 +946,7 @@
 
   const monthsContainer = document.getElementById('fa-months-container');
   for (let m = 1; m <= 12; m++) {
-    const mStr = String(m).padStart(2, '0');
+    const mStr = pad(m);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = `fa-btn btn-period-m ${mStr === currentPeriodVal ? 'active' : ''}`;
@@ -892,28 +986,60 @@
     updatePeriodText();
   };
 
+  // Cập nhật text chuỗi kỳ và đồng bộ luôn 2 ô Từ ngày - Đến ngày
   function updatePeriodText() {
     const y = getYear();
     const txt = document.getElementById('fa-period-string');
+    const fromInput = document.getElementById('fa-from-date-input');
+    const toInput = document.getElementById('fa-to-date-input');
+    const fromStartOfYear = document.getElementById('fa-opt-from-start-year').checked;
+
     document.querySelectorAll('.fa-btn').forEach((b) => b.classList.remove('active'));
+
+    let pObj = null;
 
     if (currentPeriodType === 'M') {
       txt.value = `${currentPeriodVal}/${y}`;
       const b = document.querySelector(`.btn-period-m[data-m="${currentPeriodVal}"]`);
       if (b) b.classList.add('active');
+      pObj = parseMonthPeriod(parseInt(currentPeriodVal, 10), y);
     } else if (currentPeriodType === 'Q') {
       txt.value = `Q${currentPeriodVal}/${y}`;
       const b = document.querySelector(`.btn-period-q[data-q="${currentPeriodVal}"]`);
       if (b) b.classList.add('active');
+      const q = parseInt(currentPeriodVal, 10);
+      pObj = {
+        tuNgay: formatDate(new Date(y, (q - 1) * 3, 1)),
+        denNgay: formatDate(new Date(y, q * 3, 0))
+      };
     } else if (currentPeriodType === 'H') {
       txt.value = `${currentPeriodVal}H/${y}`;
       const b = document.querySelector(`.btn-period-h[data-h="${currentPeriodVal}"]`);
       if (b) b.classList.add('active');
+      const h = parseInt(currentPeriodVal, 10);
+      pObj = {
+        tuNgay: formatDate(new Date(y, h === 1 ? 0 : 6, 1)),
+        denNgay: formatDate(new Date(y, h === 1 ? 6 : 12, 0))
+      };
     } else if (currentPeriodType === 'Y') {
       txt.value = `${y}`;
       document.getElementById('fa-btn-fullyear').classList.add('active');
+      pObj = {
+        tuNgay: `01/01/${y}`,
+        denNgay: `31/12/${y}`
+      };
+    }
+
+    if (pObj && fromInput && toInput) {
+      fromInput.value = fromStartOfYear ? `01/01/${y}` : pObj.tuNgay;
+      toInput.value = pObj.denNgay;
     }
   }
+
+  // Khi thay đổi checkbox "Từ đầu năm"
+  document.getElementById('fa-opt-from-start-year').onchange = () => {
+    updatePeriodText();
+  };
 
   document.getElementById('fa-step-dec').onclick = () => {
     document.getElementById('fa-year-input').value = getYear() - 1;
@@ -1012,8 +1138,8 @@
     document.querySelectorAll('.fa-chk-task').forEach((c) => (c.checked = false));
   };
   document.getElementById('fa-task-select-rep').onclick = () => {
-    // Cập nhật 'nxtk' thay cho 'tk'
-    const repCodes = ['cdkt', 'nkc', 'cd', 'kq', 'cp', 'nxt', 'vb', 'nxtk', 'bh', 'mv', 'br', 'tk3', 'kh', 'cc', 'cn'];
+    // Đã cập nhật bao gồm 'nxtk' và nghiệp vụ mới 'htt'
+    const repCodes = ['cdkt', 'nkc', 'cd', 'kq', 'cp', 'nxt', 'vb', 'nxtk', 'bh', 'mv', 'br', 'tk3', 'kh', 'cc', 'cn', 'htt'];
     document.querySelectorAll('.fa-chk-task').forEach((c) => {
       c.checked = repCodes.includes(c.value);
     });
@@ -1025,6 +1151,7 @@
     document.getElementById('fa-btn-stop').style.display = 'none';
   };
 
+  // Nút chạy hàng loạt
   document.getElementById('fa-btn-run').onclick = () => {
     const selectedTasks = Array.from(document.querySelectorAll('.fa-chk-task:checked')).map((c) => c.value);
     if (selectedTasks.length === 0) {
@@ -1042,7 +1169,7 @@
     let periodsToRun = [];
     targetYears.forEach((y) => {
       if (batchMode === 'ALL_MONTHS') {
-        for (let m = 1; m <= 12; m++) periodsToRun.push(`${String(m).padStart(2, '0')}/${y}`);
+        for (let m = 1; m <= 12; m++) periodsToRun.push(`${pad(m)}/${y}`);
       } else if (batchMode === 'ALL_QUARTERS') {
         periodsToRun.push(`Q1/${y}`, `Q2/${y}`, `Q3/${y}`, `Q4/${y}`);
       } else if (batchMode === 'FULL_YEAR_COMBO') {
